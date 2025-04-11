@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -231,13 +230,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const { error: interviewerError } = await supabase
             .from('interviewers')
             .insert({
+              id: data.user.id, // Use the same ID as the auth user
               user_id: data.user.id,
               name: userData.name,
               email: userData.email,
               role: 'interviewer',
-              // Set defaults for optional fields
               phone: null,
-              company_id: null
+              company_id: userData.company || null
             });
           
           if (interviewerError) {
