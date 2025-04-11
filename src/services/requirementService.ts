@@ -1,4 +1,5 @@
-import { CreateRequirementRequest, Requirement } from '@/types/requirement';
+
+import { CreateRequirementRequest, Requirement, UpdateRequirementRequest, RequirementStatus } from '@/types/requirement';
 import { supabase, typedSupabase } from '@/integrations/supabase/client';
 
 export const requirementService = {
@@ -16,7 +17,8 @@ export const requirementService = {
       throw new Error('Failed to fetch requirements');
     }
 
-    return data || [];
+    // Cast the data to ensure it matches the Requirement type
+    return (data || []) as Requirement[];
   },
 
   async getRequirementById(id: string): Promise<Requirement | null> {
@@ -31,14 +33,15 @@ export const requirementService = {
       return null;
     }
 
-    return data;
+    // Cast the data to ensure it matches the Requirement type
+    return data as Requirement;
   },
 
   async createRequirement(request: CreateRequirementRequest): Promise<{ id: string } | null> {
     const { data, error } = await typedSupabase.requirements().insert([
       {
         ...request,
-        raised_by: supabase.auth.currentUser?.id,
+        raised_by: supabase.auth.getUser().then(({ data }) => data?.user?.id) || null,
       },
     ]).select('id').single();
 
@@ -50,7 +53,7 @@ export const requirementService = {
     return data;
   },
 
-  async updateRequirementStatus(id: string, status: string): Promise<boolean> {
+  async updateRequirementStatus(id: string, status: RequirementStatus): Promise<boolean> {
     const { error } = await typedSupabase
       .requirements()
       .update({ status })
@@ -62,6 +65,27 @@ export const requirementService = {
     }
 
     return true;
+  },
+
+  // Add the missing functions that are referenced in RequirementDetail.tsx
+  async updateRequirement(id: string, updates: UpdateRequirementRequest): Promise<Requirement | null> {
+    const { data, error } = await typedSupabase
+      .requirements()
+      .update(updates)
+      .eq('id', id)
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error('Error updating requirement:', error);
+      return null;
+    }
+
+    return data as Requirement;
+  },
+
+  async closeRequirement(id: string, status: 'Fulfilled' | 'Canceled'): Promise<boolean> {
+    return this.updateRequirementStatus(id, status as RequirementStatus);
   },
 
   async getClientData(userId: string) {
