@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Table, 
@@ -22,13 +22,22 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAllInterviewers, mockCompanies } from '@/data/mockData';
-import { ChevronRight, Edit, Trash2, Plus, Search, FilterX, Calendar, BarChart } from 'lucide-react';
+import { ChevronRight, Edit, Trash2, Plus, Search, FilterX, Calendar, BarChart, Users, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const InterviewerManagementPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInterviewers, setSelectedInterviewers] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState<string | null>(null);
+  const [stats, setStats] = useState({
+    totalInterviewers: 0,
+    availableInterviewers: 0,
+    interviewsThisWeek: 0,
+    interviewersSignedUp: 0
+  });
   
   const allInterviewers = getAllInterviewers();
   const filteredInterviewers = allInterviewers.filter(interviewer => 
@@ -42,6 +51,84 @@ const InterviewerManagementPage: React.FC = () => {
     const company = mockCompanies.find(c => c.id === companyId);
     return company ? company.name : 'Unknown Company';
   };
+  
+  // Fetch statistics from Supabase
+  const fetchStats = async () => {
+    setIsStatsLoading(true);
+    setStatsError(null);
+    
+    try {
+      // Fetch total interviewers count
+      const { count: totalInterviewers, error: totalError } = await supabase
+        .from('interviewers')
+        .select('*', { count: 'exact', head: true });
+      
+      if (totalError) throw new Error(`Error fetching total interviewers: ${totalError.message}`);
+      
+      // Fetch registered users with 'interviewer' role in profiles
+      const { count: interviewersSignedUp, error: signedUpError } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'interviewer');
+      
+      if (signedUpError) throw new Error(`Error fetching signed up interviewers: ${signedUpError.message}`);
+      
+      // Calculate current week's start date (Sunday) and end date (Saturday)
+      const today = new Date();
+      const currentDay = today.getDay(); // 0 is Sunday, 6 is Saturday
+      const startDate = new Date(today);
+      startDate.setDate(today.getDate() - currentDay); // Go back to Sunday
+      startDate.setHours(0, 0, 0, 0);
+      
+      const endDate = new Date(today);
+      endDate.setDate(today.getDate() + (6 - currentDay)); // Go forward to Saturday
+      endDate.setHours(23, 59, 59, 999);
+      
+      // Format dates for Supabase query
+      const startDateISO = startDate.toISOString();
+      const endDateISO = endDate.toISOString();
+      
+      // Fetch interviews scheduled for this week
+      const { count: interviewsThisWeek, error: interviewsError } = await supabase
+        .from('interviews_schedule')
+        .select('*', { count: 'exact', head: true })
+        .gte('scheduled_at', startDateISO)
+        .lte('scheduled_at', endDateISO);
+      
+      if (interviewsError) throw new Error(`Error fetching interviews this week: ${interviewsError.message}`);
+      
+      // For available interviewers, we'll count those who don't have interviews scheduled right now
+      // This is a simplification - in a real app, you might have a status field
+      const { data: busyInterviewerIds, error: busyError } = await supabase
+        .from('interviews_schedule')
+        .select('interviewer_id')
+        .eq('status', 'Scheduled')
+        .lte('scheduled_at', new Date().toISOString());
+      
+      if (busyError) throw new Error(`Error fetching busy interviewers: ${busyError.message}`);
+      
+      // Calculate available interviewers (total minus busy)
+      const busyInterviewers = new Set(busyInterviewerIds?.map(item => item.interviewer_id) || []);
+      const availableInterviewers = totalInterviewers ? totalInterviewers - busyInterviewers.size : 0;
+      
+      setStats({
+        totalInterviewers: totalInterviewers || 0,
+        availableInterviewers: availableInterviewers,
+        interviewsThisWeek: interviewsThisWeek || 0,
+        interviewersSignedUp: interviewersSignedUp || 0
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      setStatsError(error instanceof Error ? error.message : 'An unknown error occurred');
+      toast.error('Failed to load interviewer statistics');
+    } finally {
+      setIsStatsLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    fetchStats();
+  }, []);
   
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsLoading(true);
@@ -106,6 +193,35 @@ const InterviewerManagementPage: React.FC = () => {
     ];
     return dates[parseInt(interviewerId.slice(-1)) % dates.length];
   };
+
+  // Helper to render a stat card with loading state
+  const renderStatCard = (
+    title: string, 
+    value: number | string, 
+    icon: React.ReactNode, 
+    bgClass: string, 
+    iconBgClass: string
+  ) => {
+    return (
+      <Card className="bg-white dark:bg-gray-800 shadow-sm border-purple-100 dark:border-purple-900/20">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">{title}</p>
+              {isStatsLoading ? (
+                <Skeleton className="h-8 w-16 mt-1" />
+              ) : (
+                <p className="text-2xl font-bold">{value}</p>
+              )}
+            </div>
+            <div className={`h-12 w-12 ${iconBgClass} rounded-full flex items-center justify-center`}>
+              {icon}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
   
   return (
     <div className="space-y-6">
@@ -120,51 +236,55 @@ const InterviewerManagementPage: React.FC = () => {
       </div>
       
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-white dark:bg-gray-800 shadow-sm border-purple-100 dark:border-purple-900/20">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Interviewers</p>
-                <p className="text-2xl font-bold">{allInterviewers.length}</p>
-              </div>
-              <div className="h-12 w-12 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
-                <Users className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {renderStatCard(
+          "Total Interviewers",
+          stats.totalInterviewers,
+          <Users className="h-6 w-6 text-purple-600 dark:text-purple-400" />,
+          "bg-white dark:bg-gray-800",
+          "bg-purple-100 dark:bg-purple-900/20"
+        )}
         
-        <Card className="bg-white dark:bg-gray-800 shadow-sm border-purple-100 dark:border-purple-900/20">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Available Now</p>
-                <p className="text-2xl font-bold">7</p>
-              </div>
-              <div className="h-12 w-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center">
-                <div className="h-6 w-6 rounded-full bg-green-500 flex items-center justify-center text-white">
-                  ✓
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {renderStatCard(
+          "Available Now",
+          stats.availableInterviewers,
+          <div className="h-6 w-6 rounded-full bg-green-500 flex items-center justify-center text-white">✓</div>,
+          "bg-white dark:bg-gray-800",
+          "bg-green-100 dark:bg-green-900/20"
+        )}
         
-        <Card className="bg-white dark:bg-gray-800 shadow-sm border-purple-100 dark:border-purple-900/20">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Interviews This Week</p>
-                <p className="text-2xl font-bold">12</p>
-              </div>
-              <div className="h-12 w-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
-                <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {renderStatCard(
+          "Interviews This Week",
+          stats.interviewsThisWeek,
+          <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />,
+          "bg-white dark:bg-gray-800",
+          "bg-blue-100 dark:bg-blue-900/20"
+        )}
+        
+        {renderStatCard(
+          "Interviewers Signed Up",
+          stats.interviewersSignedUp,
+          <UserPlus className="h-6 w-6 text-amber-600 dark:text-amber-400" />,
+          "bg-white dark:bg-gray-800",
+          "bg-amber-100 dark:bg-amber-900/20"
+        )}
       </div>
+      
+      {statsError && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-md">
+          <p className="text-red-700 dark:text-red-300 text-sm">
+            <strong>Error loading statistics:</strong> {statsError}
+          </p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={fetchStats} 
+            className="mt-2 text-red-600 border-red-200 hover:bg-red-50"
+          >
+            Retry
+          </Button>
+        </div>
+      )}
       
       <Card className="border border-slate-200 dark:border-slate-800 shadow-sm">
         <CardHeader className="pb-0">
@@ -371,26 +491,3 @@ const InterviewerManagementPage: React.FC = () => {
 };
 
 export default InterviewerManagementPage;
-
-// Import the Users icon which was missing
-function Users(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-}
