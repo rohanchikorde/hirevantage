@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster.tsx'; 
@@ -183,6 +182,7 @@ function App() {
               <Route path="profile" element={<IntervieweeProfile />} />
             </Route>
             
+            {/* 404 route - should be the last route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </SidebarProvider>
