@@ -12,7 +12,8 @@ import { toast } from "sonner";
 export const requirementService = {
   async createRequirement(request: CreateRequirementRequest): Promise<Requirement | null> {
     try {
-      const { data, error } = await supabaseTable('requirements')
+      const { data, error } = await supabase
+        .from('requirements')
         .insert({
           title: request.title,
           description: request.description,
@@ -36,7 +37,8 @@ export const requirementService = {
 
   async getRequirements(filters?: { status?: RequirementStatus }): Promise<Requirement[]> {
     try {
-      let query = supabaseTable('requirements')
+      let query = supabase
+        .from('requirements')
         .select('*');
 
       if (filters?.status) {
@@ -55,7 +57,8 @@ export const requirementService = {
 
   async getRequirementById(id: string): Promise<Requirement | null> {
     try {
-      const { data, error } = await supabaseTable('requirements')
+      const { data, error } = await supabase
+        .from('requirements')
         .select('*')
         .eq('id', id)
         .single();
@@ -70,7 +73,8 @@ export const requirementService = {
 
   async updateRequirement(id: string, updates: UpdateRequirementRequest): Promise<Requirement | null> {
     try {
-      const { data, error } = await supabaseTable('requirements')
+      const { data, error } = await supabase
+        .from('requirements')
         .update(updates)
         .eq('id', id)
         .select()
@@ -86,7 +90,8 @@ export const requirementService = {
 
   async closeRequirement(id: string, status: 'Fulfilled' | 'Canceled'): Promise<boolean> {
     try {
-      const { error } = await supabaseTable('requirements')
+      const { error } = await supabase
+        .from('requirements')
         .update({ status })
         .eq('id', id);
 

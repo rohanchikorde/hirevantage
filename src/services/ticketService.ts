@@ -9,7 +9,8 @@ export const ticketService = {
    */
   async getTickets(filters?: { status?: TicketStatus; company_id?: string }): Promise<TicketWithDetails[]> {
     try {
-      let query = supabaseTable('tickets')
+      let query = supabase
+        .from('tickets')
         .select(`
           *,
           requirements:requirement_id(title),
@@ -55,7 +56,8 @@ export const ticketService = {
    */
   async getTicketById(ticketId: string): Promise<TicketWithDetails | null> {
     try {
-      const { data, error } = await supabaseTable('tickets')
+      const { data, error } = await supabase
+        .from('tickets')
         .select(`
           *,
           requirements:requirement_id(title, description, skills, number_of_positions, years_of_experience, price_per_interview),
@@ -102,7 +104,8 @@ export const ticketService = {
         throw new Error('User not authenticated');
       }
 
-      const { data, error } = await supabaseTable('tickets')
+      const { data, error } = await supabase
+        .from('tickets')
         .insert({
           requirement_id: request.requirement_id,
           company_id: request.company_id,
@@ -127,7 +130,8 @@ export const ticketService = {
    */
   async updateTicketStatus(ticketId: string, request: UpdateTicketRequest): Promise<Ticket | null> {
     try {
-      const { data, error } = await supabaseTable('tickets')
+      const { data, error } = await supabase
+        .from('tickets')
         .update({
           status: request.status
         })
@@ -151,9 +155,10 @@ export const ticketService = {
    */
   async escalateTicket(ticketId: string, reason: string): Promise<Ticket | null> {
     try {
-      const { data, error } = await supabaseTable('tickets')
+      const { data, error } = await supabase
+        .from('tickets')
         .update({
-          status: 'Escalated',
+          status: 'Escalated'
           // In a real application, we would store the reason in a separate table
           // For simplicity, we're not implementing that here
         })
