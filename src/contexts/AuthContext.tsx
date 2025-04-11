@@ -112,8 +112,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: data.email,
           name: data.full_name,
           role: data.role,
-          company: data.organization_id || '',  // Map organization_id to company property
+          company: '', // Initialize with empty string
         });
+
+        // If the role is client, fetch the organization_id from the clients table
+        if (data.role === 'client') {
+          const { data: clientData, error: clientError } = await supabase
+            .from('clients')
+            .select('organization_id')
+            .eq('id', userId)
+            .single();
+
+          if (!clientError && clientData && clientData.organization_id) {
+            setUserProfile(prev => prev ? {
+              ...prev,
+              company: clientData.organization_id
+            } : null);
+          }
+        }
       }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
