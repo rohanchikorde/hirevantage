@@ -36,6 +36,7 @@ export const checkSupabaseConnection = async () => {
 };
 
 export const logTableSchemas = async () => {
+  // Define explicitly-typed table names to match Supabase schema
   const tables = [
     'profiles',
     'interviewers', 
@@ -43,7 +44,7 @@ export const logTableSchemas = async () => {
     'organizations',
     'requirements',
     'interviews_schedule'
-  ];
+  ] as const; // Using const assertion to create a tuple of literal types
   
   console.log("Checking Supabase table schemas...");
   

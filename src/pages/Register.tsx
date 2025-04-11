@@ -1,11 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthForm from '@/components/auth/AuthForm';
 import { useAuth } from '@/contexts/AuthContext';
 import { seedSampleData, checkSampleDataExists } from '@/utils/seedData';
 import { Button } from '@/components/ui/button';
-import { Database } from '@/components/ui/database';
 import { toast } from 'sonner';
 
 const Register = () => {
