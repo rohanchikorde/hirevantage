@@ -225,6 +225,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       if (data?.user) {
+        // After successful signup, add user to appropriate table based on role
+        if (userData.role === 'interviewer') {
+          // Add to interviewers table
+          const { error: interviewerError } = await supabase
+            .from('interviewers')
+            .insert({
+              user_id: data.user.id,
+              name: userData.name,
+              email: userData.email,
+              role: 'interviewer',
+              // Set defaults for optional fields
+              phone: null,
+              company_id: null
+            });
+          
+          if (interviewerError) {
+            console.error('Error adding to interviewers table:', interviewerError);
+            toast.error(`Registration completed but interviewer profile couldn't be created: ${interviewerError.message}`);
+          }
+        }
+        else if (userData.role === 'candidate') {
+          // Add to candidates table
+          const { error: candidateError } = await supabase
+            .from('candidates')
+            .insert({
+              id: data.user.id, // Using auth.user.id as the primary key
+              full_name: userData.name,
+              email: userData.email,
+              // Set defaults for optional fields
+              resume_url: null,
+              status: 'New',
+              requirement_id: null
+            });
+          
+          if (candidateError) {
+            console.error('Error adding to candidates table:', candidateError);
+            toast.error(`Registration completed but candidate profile couldn't be created: ${candidateError.message}`);
+          }
+        }
+        
         toast.success('Account created successfully! Please check your email for verification.');
         navigate('/login');
       }

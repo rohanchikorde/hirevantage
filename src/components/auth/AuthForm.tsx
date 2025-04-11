@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -68,14 +69,19 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
         await login(loginData.email, loginData.password);
       } else {
         const registerData = data as RegisterFormValues;
-        await register({
-          name: registerData.name,
-          email: registerData.email,
-          password: registerData.password,
-          role: registerData.role,
-          company: registerData.company
-        });
-        navigate('/login');
+        try {
+          await register({
+            name: registerData.name,
+            email: registerData.email,
+            password: registerData.password,
+            role: registerData.role,
+            company: registerData.company
+          });
+          navigate('/login');
+        } catch (error) {
+          console.error('Registration error:', error);
+          // The toast notifications for registration errors are now handled in the auth context
+        }
       }
     } catch (error) {
       console.error('Authentication error:', error);
