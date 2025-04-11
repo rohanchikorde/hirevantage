@@ -9,7 +9,204 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      candidates: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          requirement_id: string | null
+          resume_url: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          requirement_id?: string | null
+          resume_url?: string | null
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          requirement_id?: string | null
+          resume_url?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      interviewers: {
+        Row: {
+          availability: Json | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          skills: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          availability?: Json | null
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          skills?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          availability?: Json | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          skills?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      interviews_schedule: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          feedback: Json | null
+          id: string
+          interviewer_id: string
+          requirement_id: string
+          scheduled_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          feedback?: Json | null
+          id?: string
+          interviewer_id: string
+          requirement_id: string
+          scheduled_at: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          feedback?: Json | null
+          id?: string
+          interviewer_id?: string
+          requirement_id?: string
+          scheduled_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      organizations: {
+        Row: {
+          contact_email: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          contact_email: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          contact_email?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      requirements: {
+        Row: {
+          company_id: string
+          created_at: string
+          description: string
+          id: string
+          number_of_positions: number
+          price_per_interview: number
+          raised_by: string
+          skills: string[]
+          status: string
+          title: string
+          updated_at: string
+          years_of_experience: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          description: string
+          id?: string
+          number_of_positions: number
+          price_per_interview: number
+          raised_by: string
+          skills: string[]
+          status?: string
+          title: string
+          updated_at?: string
+          years_of_experience: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          number_of_positions?: number
+          price_per_interview?: number
+          raised_by?: string
+          skills?: string[]
+          status?: string
+          title?: string
+          updated_at?: string
+          years_of_experience?: number
+        }
+        Relationships: []
+      }
+      tickets: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          raised_by: string
+          requirement_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          raised_by: string
+          requirement_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          raised_by?: string
+          requirement_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
