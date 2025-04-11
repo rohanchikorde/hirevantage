@@ -20,9 +20,17 @@ const queryClient = new QueryClient({
 // Initialize the app
 const initApp = async () => {
   // Check Supabase connection on startup (for debugging)
-  const { checkSupabaseConnection } = await import('./utils/supabaseHelpers');
-  const connected = await checkSupabaseConnection();
-  console.log("Supabase connection check on startup:", connected ? "Success" : "Failed");
+  try {
+    const { checkSupabaseConnection } = await import('./utils/supabaseHelpers');
+    const connected = await checkSupabaseConnection();
+    console.log("Supabase connection check on startup:", connected ? "Success" : "Failed");
+    
+    if (!connected) {
+      console.warn("Warning: Supabase connection check failed. Some features may not work correctly.");
+    }
+  } catch (error) {
+    console.error("Error checking Supabase connection:", error);
+  }
 
   createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queryClient}>

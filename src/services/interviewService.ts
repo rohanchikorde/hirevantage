@@ -1,10 +1,9 @@
-// Fix only the type conversion issues in the interviewService.ts file
-// We'll create a helper function to convert the Json feedback to InterviewFeedback
 
 import { supabase } from "@/integrations/supabase/client";
 import { Interview, InterviewFeedback } from "@/types/interview";
 import { Json } from "@/integrations/supabase/types";
 import { toast } from "sonner";
+import { toJson } from "@/utils/supabaseHelpers";
 
 // Helper function to safely convert Json to InterviewFeedback
 const convertFeedback = (feedback: Json | null): InterviewFeedback | null => {
@@ -99,9 +98,10 @@ export const interviewService = {
    */
   async addInterviewFeedback(id: string, feedback: InterviewFeedback): Promise<Interview | null> {
     try {
+      // Convert the feedback to Json type for Supabase
       const { data, error } = await supabase
         .from('interviews_schedule')
-        .update({ feedback: feedback })
+        .update({ feedback: toJson(feedback) })
         .eq('id', id)
         .select()
         .single();
@@ -122,6 +122,74 @@ export const interviewService = {
     } catch (error: any) {
       console.error('Error in addInterviewFeedback:', error);
       toast.error(`Failed to add feedback to interview: ${error.message}`);
+      return null;
+    }
+  },
+
+  /**
+   * Update interview status
+   * @param {string} id 
+   * @param {string} status 
+   * @returns {Promise<Interview | null>}
+   */
+  async updateInterviewStatus(id: string, status: string): Promise<Interview | null> {
+    try {
+      const { data, error } = await supabase
+        .from('interviews_schedule')
+        .update({ status })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Error updating interview status: ${error.message}`);
+      }
+
+      if (!data) {
+        console.warn(`Interview with ID ${id} not found.`);
+        return null;
+      }
+
+      return {
+        ...data,
+        feedback: convertFeedback(data.feedback)
+      } as Interview;
+    } catch (error: any) {
+      console.error('Error in updateInterviewStatus:', error);
+      toast.error(`Failed to update interview status: ${error.message}`);
+      return null;
+    }
+  },
+
+  /**
+   * Schedule a new interview
+   * @param interviewData The interview data to schedule
+   * @returns {Promise<Interview | null>}
+   */
+  async scheduleInterview(interviewData: Omit<Interview, 'id' | 'created_at' | 'updated_at'>): Promise<Interview | null> {
+    try {
+      const { data, error } = await supabase
+        .from('interviews_schedule')
+        .insert(interviewData)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Error scheduling interview: ${error.message}`);
+      }
+
+      if (!data) {
+        console.warn(`Failed to schedule interview.`);
+        return null;
+      }
+
+      return {
+        ...data,
+        feedback: convertFeedback(data.feedback)
+      } as Interview;
+    } catch (error: any) {
+      console.error('Error in scheduleInterview:', error);
+      toast.error(`Failed to schedule interview: ${error.message}`);
       return null;
     }
   }

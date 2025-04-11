@@ -32,15 +32,15 @@ export const demoRequestService = {
           team_size: request.team_size || null,
           hiring_goals: request.hiring_goals || null,
           how_heard: request.how_heard || null
-        })
-        .select();
+        });
 
       if (error) {
         console.error("Supabase error:", error);
-        throw new Error(`Error submitting demo request: ${error.message}`);
+        toast.error(`Error submitting demo request: ${error.message}`);
+        return false;
       }
 
-      console.log("Demo request submitted successfully:", data);
+      console.log("Demo request submitted successfully");
       return true;
     } catch (error: any) {
       console.error('Error in submitDemoRequest:', error);

@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
+import { Json } from "@/integrations/supabase/types";
 
 // This helper provides type-safe operations when working with Supabase tables
 export const supabaseTable = <T extends keyof Database['public']['Tables']>(tableName: T) => {
@@ -16,7 +17,10 @@ export const castResult = <T>(data: any): T => {
 // Helper to check Supabase connection
 export const checkSupabaseConnection = async (): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.from('demo_requests').select('count(*)', { count: 'exact', head: true });
+    // Perform a basic health check query without auth
+    const { error } = await supabase
+      .from('demo_requests')
+      .select('count(*)', { count: 'exact', head: true });
     
     if (error) {
       console.error("Supabase connection check failed:", error);
@@ -29,4 +33,9 @@ export const checkSupabaseConnection = async (): Promise<boolean> => {
     console.error("Error checking Supabase connection:", error);
     return false;
   }
+};
+
+// Helper to convert TypeScript types to Json type for Supabase
+export const toJson = <T>(data: T): Json => {
+  return data as unknown as Json;
 };
