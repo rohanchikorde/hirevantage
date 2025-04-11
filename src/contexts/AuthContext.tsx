@@ -12,7 +12,7 @@ interface UserProfile {
   email: string;
   name: string;
   role: Role;
-  company?: string;
+  company?: string;  // Adding the company property to fix the error
 }
 
 interface AuthContextType {
@@ -112,6 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: data.email,
           name: data.full_name,
           role: data.role,
+          company: data.organization_id || '',  // Map organization_id to company property
         });
       }
     } catch (error) {
