@@ -193,23 +193,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const getRoleSpecificRedirectPath = () => {
-    if (!userProfile) return '/dashboard';
-    
-    switch (userProfile.role) {
-      case 'admin':
-        return '/dashboard';
-      case 'interviewer':
-        return '/interviewer';
-      case 'candidate':
-        return '/interviewee';
-      case 'client':
-        return '/organization';
-      default:
-        return '/dashboard';
-    }
-  };
-
   return (
     <AuthContext.Provider
       value={{

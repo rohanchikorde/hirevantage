@@ -1,4 +1,3 @@
-
 import { CreateRequirementRequest, Requirement, UpdateRequirementRequest, RequirementStatus } from '@/types/requirement';
 import { supabase, typedSupabase } from '@/integrations/supabase/client';
 
