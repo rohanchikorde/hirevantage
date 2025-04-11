@@ -2,15 +2,14 @@
 import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { mockInterviewee } from '@/data/intervieweeMockData';
+import { mockCandidate } from '@/data/candidateMockData';
 import { NavLink } from 'react-router-dom';
 import { Home, Calendar, Code, HelpCircle, Bell, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
 
-const IntervieweeDashboard: React.FC = () => {
-  const interviewee = mockInterviewee;
-  const unreadNotifications = interviewee.notifications.filter(n => !n.read).length;
+const CandidateDashboard: React.FC = () => {
+  const candidate = mockCandidate;
+  const unreadNotifications = candidate.notifications.filter(n => !n.read).length;
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -31,11 +30,11 @@ const IntervieweeDashboard: React.FC = () => {
           <div className="px-3 py-4">
             <div className="flex items-center space-x-2 mb-8">
               <div className="h-8 w-8 rounded-full bg-purple-600 flex items-center justify-center text-white font-semibold">
-                {interviewee.name.charAt(0)}
+                {candidate.name.charAt(0)}
               </div>
               <div>
                 <p className="text-sm font-medium leading-none">Candidate Portal</p>
-                <p className="text-xs text-muted-foreground">{interviewee.name}</p>
+                <p className="text-xs text-muted-foreground">{candidate.name}</p>
               </div>
             </div>
           </div>
@@ -46,7 +45,7 @@ const IntervieweeDashboard: React.FC = () => {
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <NavLink to="/interviewee" end className={({ isActive }) => isActive ? "text-purple-600" : ""}>
+                    <NavLink to="/candidate" end className={({ isActive }) => isActive ? "text-purple-600" : ""}>
                       <Home />
                       <span>Overview</span>
                     </NavLink>
@@ -54,7 +53,7 @@ const IntervieweeDashboard: React.FC = () => {
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <NavLink to="/interviewee/interviews" className={({ isActive }) => isActive ? "text-purple-600" : ""}>
+                    <NavLink to="/candidate/interviews" className={({ isActive }) => isActive ? "text-purple-600" : ""}>
                       <Calendar />
                       <span>Interviews</span>
                     </NavLink>
@@ -62,7 +61,7 @@ const IntervieweeDashboard: React.FC = () => {
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <NavLink to="/interviewee/coding" className={({ isActive }) => isActive ? "text-purple-600" : ""}>
+                    <NavLink to="/candidate/coding" className={({ isActive }) => isActive ? "text-purple-600" : ""}>
                       <Code />
                       <span>Coding Prep</span>
                     </NavLink>
@@ -70,7 +69,7 @@ const IntervieweeDashboard: React.FC = () => {
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <NavLink to="/interviewee/support" className={({ isActive }) => isActive ? "text-purple-600" : ""}>
+                    <NavLink to="/candidate/support" className={({ isActive }) => isActive ? "text-purple-600" : ""}>
                       <HelpCircle />
                       <span>Support</span>
                     </NavLink>
@@ -78,7 +77,7 @@ const IntervieweeDashboard: React.FC = () => {
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <NavLink to="/interviewee/notifications" className={({ isActive }) => isActive ? "text-purple-600" : ""}>
+                    <NavLink to="/candidate/notifications" className={({ isActive }) => isActive ? "text-purple-600" : ""}>
                       <Bell />
                       <span>Notifications</span>
                       {unreadNotifications > 0 && (
@@ -91,7 +90,7 @@ const IntervieweeDashboard: React.FC = () => {
                 </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <NavLink to="/interviewee/profile" className={({ isActive }) => isActive ? "text-purple-600" : ""}>
+                    <NavLink to="/candidate/profile" className={({ isActive }) => isActive ? "text-purple-600" : ""}>
                       <User />
                       <span>Profile</span>
                     </NavLink>
@@ -116,7 +115,7 @@ const IntervieweeDashboard: React.FC = () => {
                     Contact our support team for assistance with your interviews.
                   </p>
                   <NavLink 
-                    to="/interviewee/support" 
+                    to="/candidate/support" 
                     className="text-xs text-purple-700 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-200 font-medium underline underline-offset-2"
                   >
                     Go to support
@@ -137,4 +136,4 @@ const IntervieweeDashboard: React.FC = () => {
   );
 };
 
-export default IntervieweeDashboard;
+export default CandidateDashboard;
