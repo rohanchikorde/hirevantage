@@ -38,10 +38,13 @@ export const requirementService = {
   },
 
   async createRequirement(request: CreateRequirementRequest): Promise<{ id: string } | null> {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData?.user?.id || null;
+
     const { data, error } = await typedSupabase.requirements().insert([
       {
         ...request,
-        raised_by: supabase.auth.getUser().then(({ data }) => data?.user?.id) || null,
+        raised_by: userId,
       },
     ]).select('id').single();
 
