@@ -1,19 +1,48 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthForm from '@/components/auth/AuthForm';
 import { useAuth } from '@/contexts/AuthContext';
+import { seedSampleData, checkSampleDataExists } from '@/utils/seedData';
+import { Button } from '@/components/ui/button';
+import { Database } from '@/components/ui/database';
+import { toast } from 'sonner';
 
 const Register = () => {
   const { isAuthenticated, redirectToDashboard } = useAuth();
   const navigate = useNavigate();
-
+  const [hasData, setHasData] = useState<boolean | null>(null);
+  const [isSeeding, setIsSeeding] = useState(false);
+  
   useEffect(() => {
     // If already authenticated, redirect to the appropriate dashboard
     if (isAuthenticated) {
       redirectToDashboard();
     }
+    
+    // Check if sample data exists
+    const checkData = async () => {
+      const exists = await checkSampleDataExists();
+      setHasData(exists);
+    };
+    
+    checkData();
   }, [isAuthenticated, redirectToDashboard]);
+  
+  const handleSeedData = async () => {
+    setIsSeeding(true);
+    try {
+      const success = await seedSampleData();
+      if (success) {
+        setHasData(true);
+      }
+    } catch (error) {
+      console.error("Error seeding data:", error);
+      toast.error("Failed to seed sample data");
+    } finally {
+      setIsSeeding(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
@@ -54,6 +83,24 @@ const Register = () => {
               </div>
             ))}
           </div>
+          
+          {/* Sample Data Section */}
+          {hasData === false && (
+            <div className="mt-10 p-4 bg-white/10 rounded-lg">
+              <h3 className="text-lg font-semibold text-white mb-2">No Sample Data Found</h3>
+              <p className="text-white/80 mb-3">
+                Would you like to seed some sample data for testing?
+              </p>
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={handleSeedData}
+                disabled={isSeeding}
+              >
+                {isSeeding ? 'Seeding Data...' : 'Seed Sample Data'}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
       
@@ -68,6 +115,23 @@ const Register = () => {
               <span className="text-xl font-bold text-slate-900 dark:text-white">Intervue</span>
             </Link>
           </div>
+          
+          {/* Mobile-only Sample Data Button */}
+          {hasData === false && (
+            <div className="md:hidden mb-6 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg">
+              <h3 className="text-lg font-semibold mb-2">No Sample Data Found</h3>
+              <p className="text-slate-600 dark:text-slate-300 mb-3">
+                Would you like to seed some sample data for testing?
+              </p>
+              <Button
+                className="w-full"
+                onClick={handleSeedData}
+                disabled={isSeeding}
+              >
+                {isSeeding ? 'Seeding Data...' : 'Seed Sample Data'}
+              </Button>
+            </div>
+          )}
           
           <AuthForm type="register" />
         </div>

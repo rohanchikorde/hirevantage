@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -70,18 +71,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (newSession?.user) {
           // Only set synchronous state updates here
           // We'll fetch complete user data in the setTimeout below
-          let userRole = newSession.user.user_metadata?.role as string || 'guest';
+          let userRoleStr = newSession.user.user_metadata?.role as string || 'guest';
           
           // Convert any legacy 'interviewee' role to 'candidate'
-          if (userRole === 'interviewee') {
-            userRole = 'candidate';
+          if (userRoleStr === 'interviewee') {
+            userRoleStr = 'candidate';
           }
           
           setUser({
             id: newSession.user.id,
             email: newSession.user.email || '',
             name: newSession.user.user_metadata?.name || 'User',
-            role: userRole as Role,
+            role: userRoleStr as Role,
             company: newSession.user.user_metadata?.company,
           });
         } else {
@@ -95,18 +96,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(currentSession);
       
       if (currentSession?.user) {
-        let userRole = currentSession.user.user_metadata?.role as string || 'guest';
+        let userRoleStr = currentSession.user.user_metadata?.role as string || 'guest';
         
         // Convert any legacy 'interviewee' role to 'candidate'
-        if (userRole === 'interviewee') {
-          userRole = 'candidate';
+        if (userRoleStr === 'interviewee') {
+          userRoleStr = 'candidate';
         }
         
         setUser({
           id: currentSession.user.id,
           email: currentSession.user.email || '',
           name: currentSession.user.user_metadata?.name || 'User',
-          role: userRole as Role,
+          role: userRoleStr as Role,
           company: currentSession.user.user_metadata?.company,
         });
       } else {
@@ -163,14 +164,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast.success(`Welcome back, ${data.user.user_metadata?.name || data.user.email}!`);
         // Use setTimeout to ensure state has updated before redirecting
         setTimeout(() => {
-          let role = data.user.user_metadata?.role as string;
+          let roleStr = data.user.user_metadata?.role as string;
           
           // Convert any legacy 'interviewee' role to 'candidate'
-          if (role === 'interviewee') {
-            role = 'candidate';
+          if (roleStr === 'interviewee') {
+            roleStr = 'candidate';
           }
           
-          switch (role) {
+          switch (roleStr) {
             case 'admin':
               navigate('/dashboard/admin/companies');
               break;
@@ -201,9 +202,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (userData: RegisterData) => {
     setIsLoading(true);
     try {
+      console.log("Starting registration process for:", userData.email, "with role:", userData.role);
+      
       // Convert any legacy 'interviewee' role to 'candidate'
-      if (userData.role === 'interviewee') {
-        userData.role = 'candidate';
+      let userRole = userData.role;
+      if (userRole === 'interviewee') {
+        userRole = 'candidate';
       }
       
       const { data, error } = await supabase.auth.signUp({
@@ -212,20 +216,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         options: {
           data: {
             name: userData.name,
-            role: userData.role,
+            role: userRole,
             company: userData.company || null
           }
         }
       });
       
       if (error) {
+        console.error("Supabase signUp error:", error);
         toast.error(`Registration failed: ${error.message}`);
         throw error;
       }
       
       if (data?.user) {
+        console.log("User created successfully:", data.user.id);
+        
         // After successful signup, add user to appropriate table based on role
-        if (userData.role === 'interviewer') {
+        if (userRole === 'interviewer') {
+          console.log("Adding user to interviewers table");
           // Add to interviewers table
           const { error: interviewerError } = await supabase
             .from('interviewers')
@@ -242,9 +250,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (interviewerError) {
             console.error('Error adding to interviewers table:', interviewerError);
             toast.error(`Registration completed but interviewer profile couldn't be created: ${interviewerError.message}`);
+          } else {
+            console.log("Successfully added to interviewers table");
           }
         }
-        else if (userData.role === 'candidate') {
+        else if (userRole === 'candidate') {
+          console.log("Adding user to candidates table");
           // Add to candidates table
           const { error: candidateError } = await supabase
             .from('candidates')
@@ -261,6 +272,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (candidateError) {
             console.error('Error adding to candidates table:', candidateError);
             toast.error(`Registration completed but candidate profile couldn't be created: ${candidateError.message}`);
+          } else {
+            console.log("Successfully added to candidates table");
           }
         }
         
