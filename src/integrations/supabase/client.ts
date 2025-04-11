@@ -16,6 +16,16 @@ export const typedSupabase = {
   interviews_schedule: () => supabase.from('interviews_schedule'),
   tickets: () => supabase.from('tickets'),
   organizations: () => supabase.from('organizations'),
+  user_profiles: () => supabase.from('user_profiles'),
+  admins: () => supabase.from('admins'),
+  clients: () => supabase.from('clients'),
+  auth: {
+    signUp: (data: any) => supabase.auth.signUp(data),
+    signIn: (data: any) => supabase.auth.signInWithPassword(data),
+    signOut: () => supabase.auth.signOut(),
+    getSession: () => supabase.auth.getSession(),
+    onAuthStateChange: (callback: any) => supabase.auth.onAuthStateChange(callback),
+  },
   storage: {
     from: (bucket: string) => supabase.storage.from(bucket)
   }

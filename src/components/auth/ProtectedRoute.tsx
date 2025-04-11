@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,10 +12,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   requiredRoles = [] 
 }) => {
-  const { isLoading } = useAuth();
+  const { isAuthenticated, isLoading, userProfile } = useAuth();
   const location = useLocation();
 
-  // Show loading state if still loading (keeping loading state for future authentication reimplementation)
+  // Show loading state if still loading
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -23,8 +24,19 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
-  // Previously checked for authentication, now bypassing all checks
-  // This allows any user to access protected content
+  // If not authenticated, redirect to login
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // If roles are required, check if user has the required role
+  if (requiredRoles.length > 0 && userProfile) {
+    const hasRequiredRole = requiredRoles.includes(userProfile.role);
+    if (!hasRequiredRole) {
+      return <Navigate to="/unauthorized" replace />;
+    }
+  }
+
   return <>{children}</>;
 };
 
