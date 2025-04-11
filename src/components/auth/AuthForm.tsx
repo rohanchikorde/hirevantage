@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -36,7 +35,7 @@ const registerSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
   confirmPassword: z.string().min(6, { message: 'Please confirm your password' }),
-  role: z.enum(['client', 'interviewer', 'coordinator'], { message: 'Please select a role' })
+  role: z.enum(['client', 'interviewer', 'candidate'], { message: 'Please select a role' })
 }).refine(data => data.password === data.confirmPassword, {
   path: ['confirmPassword'],
   message: 'Passwords do not match',
@@ -77,11 +76,12 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
           role: registerData.role,
           company: registerData.company
         });
+        toast.success("Registration successful! Please check your email to confirm your account.");
         navigate('/login');
       }
     } catch (error) {
       console.error('Authentication error:', error);
-      // Toast notifications are now handled in the auth context
+      // Toast notifications are handled in the auth context
     } finally {
       setIsSubmitting(false);
     }
@@ -150,7 +150,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
                     >
                       <option value="client">Hiring Manager / Client</option>
                       <option value="interviewer">Interviewer</option>
-                      <option value="coordinator">Coordinator</option>
+                      <option value="candidate">Candidate</option>
                     </select>
                     <FormMessage />
                   </FormItem>

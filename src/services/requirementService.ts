@@ -1,4 +1,3 @@
-
 import { supabaseTable, castResult } from "@/utils/supabaseHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -12,6 +11,14 @@ import { toast } from "sonner";
 export const requirementService = {
   async createRequirement(request: CreateRequirementRequest): Promise<Requirement | null> {
     try {
+      // Get the current user from Supabase auth
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error('You must be logged in to create a requirement');
+        return null;
+      }
+      
       const { data, error } = await supabaseTable('requirements')
         .insert({
           title: request.title,
@@ -21,7 +28,7 @@ export const requirementService = {
           years_of_experience: request.years_of_experience,
           price_per_interview: request.price_per_interview,
           company_id: request.company_id,
-          raised_by: (await supabase.auth.getUser()).data.user?.id || '',
+          raised_by: user.id
         })
         .select()
         .single();
