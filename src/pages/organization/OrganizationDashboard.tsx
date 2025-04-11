@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { 
   Sidebar, 
@@ -23,12 +23,26 @@ import {
   Briefcase, 
   Bell, 
   HelpCircle,
-  Building
+  Building,
+  LogOut
 } from 'lucide-react';
 import { organizationMockData } from '@/data/organizationMockData';
+import { useAuth } from '@/contexts/AuthContext';
 
 const OrganizationDashboard: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Error will be handled by the toast in the AuthContext
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 w-full">
@@ -124,7 +138,7 @@ const OrganizationDashboard: React.FC = () => {
               </Link>
             </nav>
           </div>
-          <div className="py-4 px-6">
+          <div className="py-4 px-6 space-y-2">
             <Link to="/">
               <Button
                 variant="outline"
@@ -134,6 +148,15 @@ const OrganizationDashboard: React.FC = () => {
                 Switch to Admin
               </Button>
             </Link>
+            <Button
+              variant="outline"
+              className="w-full justify-start hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-purple-900/20 dark:hover:text-purple-400 transition-colors"
+              onClick={handleLogout}
+              aria-label="Log out"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
           </div>
         </div>
       </Sidebar>
@@ -243,6 +266,14 @@ const OrganizationDashboard: React.FC = () => {
                     <LayoutDashboard className="h-4 w-4" />
                     Switch to Admin
                   </Link>
+                  <button
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-gray-500 dark:text-gray-400 transition-all hover:text-purple-600 dark:hover:text-purple-400 w-full text-left"
+                    onClick={handleLogout}
+                    aria-label="Log out"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </button>
                 </nav>
               </SheetContent>
             </Sheet>
@@ -273,6 +304,15 @@ const OrganizationDashboard: React.FC = () => {
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-medium">
               AC
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative hidden md:flex"
+              onClick={handleLogout}
+              aria-label="Log out"
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
           </div>
         </header>
         <main className="flex-1 p-4 sm:p-6 bg-gray-50 dark:bg-gray-900 overflow-y-auto">
