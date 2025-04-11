@@ -1,9 +1,20 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthForm from '@/components/auth/AuthForm';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Login = () => {
+  const { isAuthenticated, redirectToDashboard } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // If already authenticated, redirect to the appropriate dashboard
+    if (isAuthenticated) {
+      redirectToDashboard();
+    }
+  }, [isAuthenticated, redirectToDashboard]);
+
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       {/* Left side - Image/Branding */}

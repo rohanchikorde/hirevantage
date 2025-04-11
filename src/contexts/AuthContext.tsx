@@ -6,7 +6,7 @@ import { Session, User } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 
 // Define types for our context
-type Role = 'superadmin' | 'clientadmin' | 'client_coordinator' | 'super_coordinator' | 'interviewer' | 'accountant' | 'guest';
+type Role = 'admin' | 'candidate' | 'interviewer' | 'client' | 'client_coordinator' | 'super_coordinator' | 'accountant' | 'guest';
 
 interface AuthUser {
   id: string;
@@ -24,6 +24,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   session: Session | null;
+  redirectToDashboard: () => void;
 }
 
 interface RegisterData {
@@ -108,6 +109,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  // Function to direct users to their appropriate dashboard based on role
+  const redirectToDashboard = () => {
+    if (!user) return;
+
+    switch (user.role) {
+      case 'admin':
+        navigate('/dashboard/admin/companies');
+        break;
+      case 'interviewer':
+        navigate('/interviewer');
+        break;
+      case 'candidate':
+        navigate('/interviewee');
+        break;
+      case 'client':
+      case 'client_coordinator':
+        navigate('/organization');
+        break;
+      default:
+        navigate('/dashboard');
+        break;
+    }
+  };
+
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
@@ -123,7 +148,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (data?.user) {
         toast.success(`Welcome back, ${data.user.user_metadata?.name || data.user.email}!`);
-        navigate('/dashboard');
+        // Use setTimeout to ensure state has updated before redirecting
+        setTimeout(() => {
+          const role = data.user.user_metadata?.role as Role;
+          switch (role) {
+            case 'admin':
+              navigate('/dashboard/admin/companies');
+              break;
+            case 'interviewer':
+              navigate('/interviewer');
+              break;
+            case 'candidate':
+              navigate('/interviewee');
+              break;
+            case 'client':
+            case 'client_coordinator':
+              navigate('/organization');
+              break;
+            default:
+              navigate('/dashboard');
+              break;
+          }
+        }, 0);
       }
     } catch (error: any) {
       console.error('Login error:', error);
@@ -196,7 +242,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         register,
         logout,
         isAuthenticated: !!session,
-        session
+        session,
+        redirectToDashboard
       }}
     >
       {children}

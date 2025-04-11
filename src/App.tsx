@@ -120,7 +120,11 @@ function App() {
             <Route path="/about" element={<About />} />
             
             {/* Protected routes */}
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>}>
+            <Route path="/dashboard" element={
+              <ProtectedRoute requiredRoles={['admin', 'client', 'super_coordinator', 'client_coordinator']}>
+                <Dashboard />
+              </ProtectedRoute>
+            }>
               <Route index element={<RequirementsPage />} />
               <Route path="requirements" element={<RequirementsPage />} />
               <Route path="requirements/new" element={<NewRequirementPage />} />
@@ -138,21 +142,69 @@ function App() {
               <Route path="candidates/:candidateId" element={<CandidateDetailPage />} />
               
               {/* Admin Routes */}
-              <Route path="admin/companies" element={<CompaniesPage />} />
-              <Route path="admin/companies/new" element={<NewCompanyPage />} />
-              <Route path="admin/companies/:companyId" element={<CompanyDetailPage />} />
-              <Route path="admin/companies/:companyId/interviews/new" element={<NewInterviewPage />} />
-              <Route path="admin/interviewers" element={<InterviewerManagementPage />} />
-              <Route path="admin/interviewers/new" element={<NewInterviewerPage />} />
-              <Route path="admin/interviewers/:interviewerId" element={<InterviewerDetailPage />} />
-              <Route path="admin/interviewers/:interviewerId/dashboard" element={<InterviewerDashboardPage />} />
-              <Route path="admin/skills" element={<SkillsPage />} />
-              <Route path="admin/skills/:skillId" element={<SkillDetailPage />} />
-              <Route path="admin/settings" element={<SettingsPage />} />
+              <Route path="admin/companies" element={
+                <ProtectedRoute requiredRoles={['admin', 'super_coordinator']}>
+                  <CompaniesPage />
+                </ProtectedRoute>
+              } />
+              <Route path="admin/companies/new" element={
+                <ProtectedRoute requiredRoles={['admin', 'super_coordinator']}>
+                  <NewCompanyPage />
+                </ProtectedRoute>
+              } />
+              <Route path="admin/companies/:companyId" element={
+                <ProtectedRoute requiredRoles={['admin', 'super_coordinator']}>
+                  <CompanyDetailPage />
+                </ProtectedRoute>
+              } />
+              <Route path="admin/companies/:companyId/interviews/new" element={
+                <ProtectedRoute requiredRoles={['admin', 'super_coordinator']}>
+                  <NewInterviewPage />
+                </ProtectedRoute>
+              } />
+              <Route path="admin/interviewers" element={
+                <ProtectedRoute requiredRoles={['admin', 'super_coordinator']}>
+                  <InterviewerManagementPage />
+                </ProtectedRoute>
+              } />
+              <Route path="admin/interviewers/new" element={
+                <ProtectedRoute requiredRoles={['admin', 'super_coordinator']}>
+                  <NewInterviewerPage />
+                </ProtectedRoute>
+              } />
+              <Route path="admin/interviewers/:interviewerId" element={
+                <ProtectedRoute requiredRoles={['admin', 'super_coordinator']}>
+                  <InterviewerDetailPage />
+                </ProtectedRoute>
+              } />
+              <Route path="admin/interviewers/:interviewerId/dashboard" element={
+                <ProtectedRoute requiredRoles={['admin', 'super_coordinator']}>
+                  <InterviewerDashboardPage />
+                </ProtectedRoute>
+              } />
+              <Route path="admin/skills" element={
+                <ProtectedRoute requiredRoles={['admin', 'super_coordinator']}>
+                  <SkillsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="admin/skills/:skillId" element={
+                <ProtectedRoute requiredRoles={['admin', 'super_coordinator']}>
+                  <SkillDetailPage />
+                </ProtectedRoute>
+              } />
+              <Route path="admin/settings" element={
+                <ProtectedRoute requiredRoles={['admin', 'super_coordinator']}>
+                  <SettingsPage />
+                </ProtectedRoute>
+              } />
             </Route>
             
             {/* Organization Client Dashboard Routes */}
-            <Route path="/organization" element={<ProtectedRoute><OrganizationDashboard /></ProtectedRoute>}>
+            <Route path="/organization" element={
+              <ProtectedRoute requiredRoles={['client', 'client_coordinator']}>
+                <OrganizationDashboard />
+              </ProtectedRoute>
+            }>
               <Route index element={<OrganizationInterviews />} />
               <Route path="interviews" element={<OrganizationInterviews />} />
               <Route path="interviewers" element={<OrganizationInterviewers />} />
@@ -163,7 +215,11 @@ function App() {
             </Route>
             
             {/* Interviewer Dashboard Routes */}
-            <Route path="/interviewer" element={<ProtectedRoute><InterviewerDashboard /></ProtectedRoute>}>
+            <Route path="/interviewer" element={
+              <ProtectedRoute requiredRoles={['interviewer']}>
+                <InterviewerDashboard />
+              </ProtectedRoute>
+            }>
               <Route index element={<InterviewerOverview />} />
               <Route path="opportunities" element={<InterviewerOpportunities />} />
               <Route path="assigned" element={<InterviewerAssigned />} />
@@ -174,7 +230,11 @@ function App() {
             </Route>
             
             {/* Interviewee Dashboard Routes */}
-            <Route path="/interviewee" element={<ProtectedRoute><IntervieweeDashboard /></ProtectedRoute>}>
+            <Route path="/interviewee" element={
+              <ProtectedRoute requiredRoles={['candidate']}>
+                <IntervieweeDashboard />
+              </ProtectedRoute>
+            }>
               <Route index element={<IntervieweeOverview />} />
               <Route path="interviews" element={<IntervieweeInterviews />} />
               <Route path="coding" element={<IntervieweeCoding />} />

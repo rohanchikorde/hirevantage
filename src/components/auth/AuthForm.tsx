@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -36,7 +35,7 @@ const registerSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
   confirmPassword: z.string().min(6, { message: 'Please confirm your password' }),
-  role: z.enum(['client', 'interviewer', 'coordinator'], { message: 'Please select a role' })
+  role: z.enum(['client', 'interviewer', 'candidate', 'admin'], { message: 'Please select a role' })
 }).refine(data => data.password === data.confirmPassword, {
   path: ['confirmPassword'],
   message: 'Passwords do not match',
@@ -67,7 +66,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
       if (type === 'login') {
         const loginData = data as LoginFormValues;
         await login(loginData.email, loginData.password);
-        navigate('/dashboard');
       } else {
         const registerData = data as RegisterFormValues;
         await register({
@@ -150,7 +148,8 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
                     >
                       <option value="client">Hiring Manager / Client</option>
                       <option value="interviewer">Interviewer</option>
-                      <option value="coordinator">Coordinator</option>
+                      <option value="candidate">Candidate</option>
+                      <option value="admin">Administrator</option>
                     </select>
                     <FormMessage />
                   </FormItem>
