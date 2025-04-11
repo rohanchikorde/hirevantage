@@ -89,6 +89,51 @@ export type Database = {
           },
         ]
       }
+      demo_requests: {
+        Row: {
+          company_name: string
+          created_at: string | null
+          full_name: string
+          hiring_goals: string | null
+          how_heard: string | null
+          id: number
+          job_title: string | null
+          phone_number: string
+          status: string | null
+          team_size: string | null
+          updated_at: string | null
+          work_email: string
+        }
+        Insert: {
+          company_name: string
+          created_at?: string | null
+          full_name: string
+          hiring_goals?: string | null
+          how_heard?: string | null
+          id?: never
+          job_title?: string | null
+          phone_number: string
+          status?: string | null
+          team_size?: string | null
+          updated_at?: string | null
+          work_email: string
+        }
+        Update: {
+          company_name?: string
+          created_at?: string | null
+          full_name?: string
+          hiring_goals?: string | null
+          how_heard?: string | null
+          id?: never
+          job_title?: string | null
+          phone_number?: string
+          status?: string | null
+          team_size?: string | null
+          updated_at?: string | null
+          work_email?: string
+        }
+        Relationships: []
+      }
       interviewers: {
         Row: {
           company_id: string | null

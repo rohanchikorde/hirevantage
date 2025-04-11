@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -19,20 +18,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
+import { demoRequestService, DemoRequest } from '@/services/demoRequestService';
 
 const RequestDemo: React.FC = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    fullName: '',
-    workEmail: '',
-    phone: '',
-    companyName: '',
-    jobTitle: '',
-    teamSize: '',
-    goals: '',
-    hearAbout: ''
+  const [formData, setFormData] = useState<DemoRequest>({
+    full_name: '',
+    work_email: '',
+    phone_number: '',
+    company_name: '',
+    job_title: '',
+    team_size: '',
+    hiring_goals: '',
+    how_heard: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -41,19 +40,22 @@ const RequestDemo: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate form submission
-    setTimeout(() => {
+    try {
+      const success = await demoRequestService.submitDemoRequest(formData);
+      
+      if (success) {
+        toast.success("Demo request received! Our team will contact you shortly to schedule your personalized demo.");
+        navigate('/');
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    } finally {
       setIsSubmitting(false);
-      toast({
-        title: "Demo request received!",
-        description: "Our team will contact you shortly to schedule your personalized demo.",
-      });
-      navigate('/');
-    }, 1500);
+    }
   };
 
   return (
@@ -106,16 +108,16 @@ const RequestDemo: React.FC = () => {
               </div>
               
               <div className="order-1 md:order-2">
-                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl p-6 md:p-8">
+                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl p-6 md:p-8" id="demo-form">
                   <h2 className="text-xl font-semibold mb-6 text-slate-900 dark:text-white">Schedule Your Demo</h2>
                   
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="space-y-2">
-                      <Label htmlFor="fullName">Full Name <span className="text-red-500">*</span></Label>
+                      <Label htmlFor="full_name">Full Name <span className="text-red-500">*</span></Label>
                       <Input
-                        id="fullName"
-                        name="fullName"
-                        value={formData.fullName}
+                        id="full_name"
+                        name="full_name"
+                        value={formData.full_name}
                         onChange={handleChange}
                         placeholder="Your full name"
                         required
@@ -124,12 +126,12 @@ const RequestDemo: React.FC = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="workEmail">Work Email <span className="text-red-500">*</span></Label>
+                      <Label htmlFor="work_email">Work Email <span className="text-red-500">*</span></Label>
                       <Input
-                        id="workEmail"
-                        name="workEmail"
+                        id="work_email"
+                        name="work_email"
                         type="email"
-                        value={formData.workEmail}
+                        value={formData.work_email}
                         onChange={handleChange}
                         placeholder="you@company.com"
                         required
@@ -138,12 +140,12 @@ const RequestDemo: React.FC = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number <span className="text-red-500">*</span></Label>
+                      <Label htmlFor="phone_number">Phone Number <span className="text-red-500">*</span></Label>
                       <Input
-                        id="phone"
-                        name="phone"
+                        id="phone_number"
+                        name="phone_number"
                         type="tel"
-                        value={formData.phone}
+                        value={formData.phone_number}
                         onChange={handleChange}
                         placeholder="Your phone number"
                         required
@@ -152,11 +154,11 @@ const RequestDemo: React.FC = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="companyName">Company Name <span className="text-red-500">*</span></Label>
+                      <Label htmlFor="company_name">Company Name <span className="text-red-500">*</span></Label>
                       <Input
-                        id="companyName"
-                        name="companyName"
-                        value={formData.companyName}
+                        id="company_name"
+                        name="company_name"
+                        value={formData.company_name}
                         onChange={handleChange}
                         placeholder="Your company name"
                         required
@@ -166,11 +168,11 @@ const RequestDemo: React.FC = () => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="jobTitle">Job Title</Label>
+                        <Label htmlFor="job_title">Job Title</Label>
                         <Input
-                          id="jobTitle"
-                          name="jobTitle"
-                          value={formData.jobTitle}
+                          id="job_title"
+                          name="job_title"
+                          value={formData.job_title}
                           onChange={handleChange}
                           placeholder="Your job title"
                           className="w-full"
@@ -178,11 +180,11 @@ const RequestDemo: React.FC = () => {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="teamSize">Team Size</Label>
+                        <Label htmlFor="team_size">Team Size</Label>
                         <select
-                          id="teamSize"
-                          name="teamSize"
-                          value={formData.teamSize}
+                          id="team_size"
+                          name="team_size"
+                          value={formData.team_size}
                           onChange={handleChange}
                           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         >
@@ -197,11 +199,11 @@ const RequestDemo: React.FC = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="goals">What are your hiring goals?</Label>
+                      <Label htmlFor="hiring_goals">What are your hiring goals?</Label>
                       <Textarea
-                        id="goals"
-                        name="goals"
-                        value={formData.goals}
+                        id="hiring_goals"
+                        name="hiring_goals"
+                        value={formData.hiring_goals}
                         onChange={handleChange}
                         placeholder="Tell us more about your technical hiring needs and challenges"
                         rows={4}
@@ -210,11 +212,11 @@ const RequestDemo: React.FC = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="hearAbout">How did you hear about us?</Label>
+                      <Label htmlFor="how_heard">How did you hear about us?</Label>
                       <Input
-                        id="hearAbout"
-                        name="hearAbout"
-                        value={formData.hearAbout}
+                        id="how_heard"
+                        name="how_heard"
+                        value={formData.how_heard}
                         onChange={handleChange}
                         placeholder="Google, LinkedIn, Referral, etc."
                         className="w-full"
