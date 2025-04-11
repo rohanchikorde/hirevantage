@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -7,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 
 import {
   Form,
@@ -19,7 +18,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AuthFormProps {
   type: 'login' | 'register';
@@ -33,12 +31,12 @@ const loginSchema = z.object({
 
 // Schema for registration form
 const registerSchema = z.object({
-  full_name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
-  organization_id: z.string().optional(),
+  name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
+  company: z.string().optional(),
   email: z.string().email({ message: 'Please enter a valid email address' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
   confirmPassword: z.string().min(6, { message: 'Please confirm your password' }),
-  role: z.enum(['admin', 'client', 'interviewer', 'candidate'], { message: 'Please select a role' })
+  role: z.enum(['client', 'interviewer', 'coordinator'], { message: 'Please select a role' })
 }).refine(data => data.password === data.confirmPassword, {
   path: ['confirmPassword'],
   message: 'Passwords do not match',
@@ -49,67 +47,18 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
   const navigate = useNavigate();
-  const { login, register, isAuthenticated, userProfile } = useAuth();
+  const { login, register } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [organizations, setOrganizations] = useState<any[]>([]);
-  const [showOrgField, setShowOrgField] = useState(false);
 
   // Initialize the form with the appropriate schema
   const form = useForm<LoginFormValues | RegisterFormValues>({
     resolver: zodResolver(type === 'login' ? loginSchema : registerSchema),
     defaultValues: type === 'login' 
       ? { email: '', password: '' } 
-      : { full_name: '', organization_id: '', email: '', password: '', confirmPassword: '', role: 'client' }
+      : { name: '', company: '', email: '', password: '', confirmPassword: '', role: 'client' }
   });
-
-  // Fetch organizations for the dropdown
-  useEffect(() => {
-    if (type === 'register') {
-      const fetchOrganizations = async () => {
-        const { data, error } = await supabase.from('organizations').select('id, name');
-        if (error) {
-          console.error('Error fetching organizations:', error);
-          return;
-        }
-        setOrganizations(data || []);
-      };
-      
-      fetchOrganizations();
-    }
-  }, [type]);
-
-  // Handle role change to show/hide organization field
-  const handleRoleChange = (value: string) => {
-    setShowOrgField(value === 'client');
-    if (value !== 'client') {
-      form.setValue('organization_id', '');
-    }
-  };
-
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated && userProfile) {
-      const redirectPath = getRoleBasedRedirectPath(userProfile.role);
-      navigate(redirectPath, { replace: true });
-    }
-  }, [isAuthenticated, userProfile, navigate]);
-
-  const getRoleBasedRedirectPath = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return '/dashboard';
-      case 'interviewer':
-        return '/interviewer';
-      case 'candidate':
-        return '/interviewee';
-      case 'client':
-        return '/organization';
-      default:
-        return '/dashboard';
-    }
-  };
 
   const onSubmit = async (data: LoginFormValues | RegisterFormValues) => {
     try {
@@ -118,21 +67,21 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
       if (type === 'login') {
         const loginData = data as LoginFormValues;
         await login(loginData.email, loginData.password);
-        // Redirect will happen in the useEffect
+        navigate('/dashboard');
       } else {
         const registerData = data as RegisterFormValues;
         await register({
-          full_name: registerData.full_name,
+          name: registerData.name,
           email: registerData.email,
           password: registerData.password,
           role: registerData.role,
-          organization_id: registerData.organization_id
+          company: registerData.company
         });
         navigate('/login');
       }
     } catch (error) {
       console.error('Authentication error:', error);
-      // Toast notifications are handled in the auth context
+      // Toast notifications are now handled in the auth context
     } finally {
       setIsSubmitting(false);
     }
@@ -157,13 +106,30 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
             <>
               <FormField
                 control={form.control}
-                name="full_name"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Full Name</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="Your name" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="company"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company Name</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Your company" 
                         {...field} 
                       />
                     </FormControl>
@@ -178,59 +144,18 @@ const AuthForm: React.FC<AuthFormProps> = ({ type }) => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>I am a</FormLabel>
-                    <Select 
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        handleRoleChange(value);
-                      }}
-                      defaultValue={field.value}
+                    <select
+                      className="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-intervue-600/50 focus:border-intervue-600 dark:focus:ring-intervue-500/50 dark:focus:border-intervue-500 transition-all"
+                      {...field}
                     >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your role" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="client">Hiring Manager / Client</SelectItem>
-                        <SelectItem value="interviewer">Interviewer</SelectItem>
-                        <SelectItem value="candidate">Candidate</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
+                      <option value="client">Hiring Manager / Client</option>
+                      <option value="interviewer">Interviewer</option>
+                      <option value="coordinator">Coordinator</option>
+                    </select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              {showOrgField && (
-                <FormField
-                  control={form.control}
-                  name="organization_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Organization</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select your organization" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {organizations.map((org) => (
-                            <SelectItem key={org.id} value={org.id}>
-                              {org.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
             </>
           )}
 

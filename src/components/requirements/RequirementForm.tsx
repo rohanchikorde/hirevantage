@@ -47,7 +47,7 @@ interface RequirementFormProps {
 }
 
 const RequirementForm: React.FC<RequirementFormProps> = ({ onSuccess }) => {
-  const { user, userProfile } = useAuth();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<FormData>({
@@ -71,15 +71,9 @@ const RequirementForm: React.FC<RequirementFormProps> = ({ onSuccess }) => {
     setIsSubmitting(true);
 
     try {
-      // For demo purposes, use the organization_id if the user is a client
-      // In a real app, we might get this from a different source
-      let companyId = '';
-      
-      if (userProfile?.role === 'client') {
-        // For client users, try to get their organization_id if present in raw data
-        const clientData = await requirementService.getClientData(user.id);
-        companyId = clientData?.organization_id || '';
-      }
+      // For demo purposes, use the first organization
+      // In a real app, we would let the user select their organization
+      const companyId = user.company || '';
       
       // Transform the data with Zod to ensure skills is a string[]
       const processedData = formSchema.parse(data) as ProcessedFormData;
