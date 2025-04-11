@@ -12,3 +12,21 @@ export const supabaseTable = <T extends keyof Database['public']['Tables']>(tabl
 export const castResult = <T>(data: any): T => {
   return data as T;
 };
+
+// Helper to check Supabase connection
+export const checkSupabaseConnection = async (): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.from('demo_requests').select('count(*)', { count: 'exact', head: true });
+    
+    if (error) {
+      console.error("Supabase connection check failed:", error);
+      return false;
+    }
+    
+    console.log("Supabase connection check succeeded");
+    return true;
+  } catch (error) {
+    console.error("Error checking Supabase connection:", error);
+    return false;
+  }
+};

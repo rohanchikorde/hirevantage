@@ -19,7 +19,9 @@ export const demoRequestService = {
    */
   async submitDemoRequest(request: DemoRequest): Promise<boolean> {
     try {
-      const { error } = await supabase
+      console.log("Submitting demo request:", request);
+      
+      const { data, error } = await supabase
         .from('demo_requests')
         .insert({
           full_name: request.full_name,
@@ -30,12 +32,15 @@ export const demoRequestService = {
           team_size: request.team_size || null,
           hiring_goals: request.hiring_goals || null,
           how_heard: request.how_heard || null
-        });
+        })
+        .select();
 
       if (error) {
+        console.error("Supabase error:", error);
         throw new Error(`Error submitting demo request: ${error.message}`);
       }
 
+      console.log("Demo request submitted successfully:", data);
       return true;
     } catch (error: any) {
       console.error('Error in submitDemoRequest:', error);

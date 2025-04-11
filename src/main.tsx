@@ -17,11 +17,32 @@ const queryClient = new QueryClient({
   },
 })
 
-createRoot(document.getElementById("root")!).render(
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <App />
-      <Toaster position="top-right" richColors />
-    </BrowserRouter>
-  </QueryClientProvider>
-);
+// Initialize the app
+const initApp = async () => {
+  // Check Supabase connection on startup (for debugging)
+  const { checkSupabaseConnection } = await import('./utils/supabaseHelpers');
+  const connected = await checkSupabaseConnection();
+  console.log("Supabase connection check on startup:", connected ? "Success" : "Failed");
+
+  createRoot(document.getElementById("root")!).render(
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <App />
+        <Toaster position="top-right" richColors />
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+};
+
+initApp().catch(error => {
+  console.error("Error initializing app:", error);
+  // Render the app anyway to avoid a blank screen
+  createRoot(document.getElementById("root")!).render(
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <App />
+        <Toaster position="top-right" richColors />
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+});
