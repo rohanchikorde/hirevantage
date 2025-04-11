@@ -36,7 +36,8 @@ export const interviewService = {
    */
   async scheduleInterview(request: ScheduleInterviewRequest): Promise<Interview | null> {
     try {
-      const { data, error } = await supabaseTable('interviews_schedule')
+      const { data, error } = await supabase
+        .from('interviews_schedule')
         .insert({
           candidate_id: request.candidate_id,
           interviewer_id: request.interviewer_id,
@@ -63,7 +64,8 @@ export const interviewService = {
    */
   async getInterviews(filters?: { status?: InterviewStatus; interviewer_id?: string }): Promise<InterviewWithDetails[]> {
     try {
-      let query = supabaseTable('interviews_schedule')
+      let query = supabase
+        .from('interviews_schedule')
         .select(`
           *,
           candidates:candidate_id(*),
@@ -115,7 +117,8 @@ export const interviewService = {
    */
   async getInterviewById(interviewId: string): Promise<InterviewWithDetails | null> {
     try {
-      const { data, error } = await supabaseTable('interviews_schedule')
+      const { data, error } = await supabase
+        .from('interviews_schedule')
         .select(`
           *,
           candidates:candidate_id(*),
@@ -160,7 +163,8 @@ export const interviewService = {
    */
   async updateInterviewStatus(interviewId: string, request: UpdateInterviewStatusRequest): Promise<Interview | null> {
     try {
-      const { data, error } = await supabaseTable('interviews_schedule')
+      const { data, error } = await supabase
+        .from('interviews_schedule')
         .update({
           status: request.status
         })
@@ -184,7 +188,8 @@ export const interviewService = {
    */
   async addInterviewFeedback(interviewId: string, request: AddInterviewFeedbackRequest): Promise<Interview | null> {
     try {
-      const { data, error } = await supabaseTable('interviews_schedule')
+      const { data, error } = await supabase
+        .from('interviews_schedule')
         .update({
           feedback: request.feedback as unknown as Json,
           status: 'Completed' as InterviewStatus // Automatically update status to Completed when feedback is added

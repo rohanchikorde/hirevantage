@@ -12,7 +12,8 @@ import { toast } from "sonner";
 export const candidateService = {
   async createCandidate(request: CreateCandidateRequest): Promise<Candidate | null> {
     try {
-      const { data, error } = await supabaseTable('candidates')
+      const { data, error } = await supabase
+        .from('candidates')
         .insert({
           full_name: request.full_name,
           email: request.email,
@@ -33,7 +34,8 @@ export const candidateService = {
 
   async getCandidatesByRequirement(requirementId: string): Promise<Candidate[]> {
     try {
-      const { data, error } = await supabaseTable('candidates')
+      const { data, error } = await supabase
+        .from('candidates')
         .select('*')
         .eq('requirement_id', requirementId)
         .order('created_at', { ascending: false });
@@ -48,7 +50,8 @@ export const candidateService = {
 
   async updateCandidateStatus(id: string, status: CandidateStatus): Promise<Candidate | null> {
     try {
-      const { data, error } = await supabaseTable('candidates')
+      const { data, error } = await supabase
+        .from('candidates')
         .update({ status })
         .eq('id', id)
         .select()
@@ -86,7 +89,8 @@ export const candidateService = {
 
   async bulkCreateCandidates(candidates: CreateCandidateRequest[]): Promise<number> {
     try {
-      const { data, error } = await supabaseTable('candidates')
+      const { data, error } = await supabase
+        .from('candidates')
         .insert(candidates.map(c => ({
           full_name: c.full_name,
           email: c.email,
