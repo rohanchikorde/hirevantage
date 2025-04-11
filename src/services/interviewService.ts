@@ -4,6 +4,29 @@ import { Interview, InterviewFeedback, InterviewStatus, UpdateInterviewStatusReq
 import { Json } from "@/integrations/supabase/types";
 import { toJson } from '@/utils/supabaseHelpers';
 
+// Helper function to convert Json to InterviewFeedback
+const parseInterviewFeedback = (feedback: Json | null): InterviewFeedback | null => {
+  if (!feedback) return null;
+  
+  try {
+    // Ensure the feedback has the required properties
+    const parsedFeedback = feedback as any;
+    if (typeof parsedFeedback.rating === 'number' && typeof parsedFeedback.comments === 'string') {
+      return {
+        rating: parsedFeedback.rating,
+        comments: parsedFeedback.comments,
+        strengths: parsedFeedback.strengths || [],
+        weaknesses: parsedFeedback.weaknesses || [],
+        recommendation: parsedFeedback.recommendation || ''
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error("Error parsing interview feedback:", error);
+    return null;
+  }
+};
+
 // Create an interviewService object with all the functions as methods
 export const interviewService = {
   async getInterviews(filter?: { status?: InterviewStatus | 'all' }): Promise<Interview[]> {
@@ -34,8 +57,9 @@ export const interviewService = {
         status: item.status as InterviewStatus,
         candidate_name: item.candidates?.full_name,
         interviewer_name: item.interviewers?.name,
-        requirement_title: item.requirements?.title
-      })) as Interview[];
+        requirement_title: item.requirements?.title,
+        feedback: parseInterviewFeedback(item.feedback)
+      })) as unknown as Interview[];
       
       return interviews;
     } catch (error) {
@@ -64,14 +88,15 @@ export const interviewService = {
       
       if (!data) return null;
       
-      // Ensure status is of type InterviewStatus
+      // Ensure status is of type InterviewStatus and convert feedback
       const interview = {
         ...data,
         status: data.status as InterviewStatus,
         candidate_name: data.candidates?.full_name,
         interviewer_name: data.interviewers?.name,
-        requirement_title: data.requirements?.title
-      } as Interview;
+        requirement_title: data.requirements?.title,
+        feedback: parseInterviewFeedback(data.feedback)
+      } as unknown as Interview;
       
       return interview;
     } catch (error) {
@@ -106,8 +131,9 @@ export const interviewService = {
       // Ensure status is of type InterviewStatus
       return {
         ...data,
-        status: data.status as InterviewStatus
-      } as Interview;
+        status: data.status as InterviewStatus,
+        feedback: parseInterviewFeedback(data.feedback)
+      } as unknown as Interview;
     } catch (error) {
       console.error('Error in scheduleInterview:', error);
       throw error;
@@ -131,8 +157,9 @@ export const interviewService = {
       // Ensure status is of type InterviewStatus
       return {
         ...data,
-        status: data.status as InterviewStatus
-      } as Interview;
+        status: data.status as InterviewStatus,
+        feedback: parseInterviewFeedback(data.feedback)
+      } as unknown as Interview;
     } catch (error) {
       console.error('Error in updateInterviewStatus:', error);
       throw error;
@@ -159,8 +186,9 @@ export const interviewService = {
       // Ensure status is of type InterviewStatus
       return {
         ...data,
-        status: data.status as InterviewStatus
-      } as Interview;
+        status: data.status as InterviewStatus,
+        feedback: parseInterviewFeedback(data.feedback)
+      } as unknown as Interview;
     } catch (error) {
       console.error('Error in addInterviewFeedback:', error);
       throw error;
