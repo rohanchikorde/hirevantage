@@ -71,7 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (newSession?.user) {
           // Only set synchronous state updates here
           // We'll fetch complete user data in the setTimeout below
-          let userRole = newSession.user.user_metadata?.role as Role || 'guest';
+          let userRole = newSession.user.user_metadata?.role as string || 'guest';
           
           // Convert any legacy 'interviewee' role to 'candidate'
           if (userRole === 'interviewee') {
@@ -82,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             id: newSession.user.id,
             email: newSession.user.email || '',
             name: newSession.user.user_metadata?.name || 'User',
-            role: userRole,
+            role: userRole as Role,
             company: newSession.user.user_metadata?.company,
           });
         } else {
@@ -96,7 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(currentSession);
       
       if (currentSession?.user) {
-        let userRole = currentSession.user.user_metadata?.role as Role || 'guest';
+        let userRole = currentSession.user.user_metadata?.role as string || 'guest';
         
         // Convert any legacy 'interviewee' role to 'candidate'
         if (userRole === 'interviewee') {
@@ -107,7 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: currentSession.user.id,
           email: currentSession.user.email || '',
           name: currentSession.user.user_metadata?.name || 'User',
-          role: userRole,
+          role: userRole as Role,
           company: currentSession.user.user_metadata?.company,
         });
       } else {
@@ -164,7 +164,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast.success(`Welcome back, ${data.user.user_metadata?.name || data.user.email}!`);
         // Use setTimeout to ensure state has updated before redirecting
         setTimeout(() => {
-          let role = data.user.user_metadata?.role as Role;
+          let role = data.user.user_metadata?.role as string;
           
           // Convert any legacy 'interviewee' role to 'candidate'
           if (role === 'interviewee') {
