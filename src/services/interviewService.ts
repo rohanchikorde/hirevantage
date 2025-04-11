@@ -1,5 +1,5 @@
 
-import { supabaseTable, castResult } from "@/utils/supabaseHelpers";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Interview, 
   InterviewWithDetails, 
@@ -10,6 +10,7 @@ import {
   InterviewFeedback
 } from "@/types/interview";
 import { Json } from "@/integrations/supabase/types";
+import { toast } from "sonner";
 
 // Helper function to convert Json to InterviewFeedback if needed
 const convertFeedback = (feedback: Json | null): InterviewFeedback | null => {
@@ -52,10 +53,11 @@ export const interviewService = {
         throw new Error(`Error scheduling interview: ${error.message}`);
       }
 
-      return castResult<Interview>(data);
+      return data as Interview;
     } catch (error: any) {
       console.error('Error in scheduleInterview:', error);
-      throw error;
+      toast.error(`Failed to schedule interview: ${error.message}`);
+      return null;
     }
   },
 
@@ -87,8 +89,8 @@ export const interviewService = {
         throw new Error(`Error fetching interviews: ${error.message}`);
       }
 
-      // Transform data to match InterviewWithDetails interface using type assertion
-      const interviews = castResult<any[]>(data).map(item => {
+      // Transform data to match InterviewWithDetails interface
+      const interviews = (data || []).map(item => {
         return {
           id: item.id,
           candidate_id: item.candidate_id,
@@ -108,7 +110,8 @@ export const interviewService = {
       return interviews;
     } catch (error: any) {
       console.error('Error in getInterviews:', error);
-      throw error;
+      toast.error(`Failed to fetch interviews: ${error.message}`);
+      return [];
     }
   },
 
@@ -136,8 +139,8 @@ export const interviewService = {
         return null;
       }
 
-      // Transform data to match InterviewWithDetails interface using type assertion
-      const item = castResult<any>(data);
+      // Transform data to match InterviewWithDetails interface
+      const item = data;
       return {
         id: item.id,
         candidate_id: item.candidate_id,
@@ -154,7 +157,8 @@ export const interviewService = {
       } as InterviewWithDetails;
     } catch (error: any) {
       console.error('Error in getInterviewById:', error);
-      throw error;
+      toast.error(`Failed to fetch interview: ${error.message}`);
+      return null;
     }
   },
 
@@ -176,10 +180,11 @@ export const interviewService = {
         throw new Error(`Error updating interview status: ${error.message}`);
       }
 
-      return castResult<Interview>(data);
+      return data as Interview;
     } catch (error: any) {
       console.error('Error in updateInterviewStatus:', error);
-      throw error;
+      toast.error(`Failed to update interview status: ${error.message}`);
+      return null;
     }
   },
 
@@ -202,10 +207,11 @@ export const interviewService = {
         throw new Error(`Error adding interview feedback: ${error.message}`);
       }
 
-      return castResult<Interview>(data);
+      return data as Interview;
     } catch (error: any) {
       console.error('Error in addInterviewFeedback:', error);
-      throw error;
+      toast.error(`Failed to add interview feedback: ${error.message}`);
+      return null;
     }
   }
 };

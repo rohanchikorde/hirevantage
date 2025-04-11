@@ -1,9 +1,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
 
-// This helper provides a workaround for TypeScript errors with tables not defined in types.ts
-export const supabaseTable = (tableName: string) => {
-  // Using type assertion to bypass the TypeScript restriction since we know these tables exist
+// This helper provides type-safe operations when working with Supabase tables
+export const supabaseTable = <T extends keyof Database['public']['Tables']>(tableName: T) => {
+  // Using type assertion to properly type the table
   return supabase.from(tableName);
 };
 
