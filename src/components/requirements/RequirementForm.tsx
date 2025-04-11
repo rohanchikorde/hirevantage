@@ -71,11 +71,15 @@ const RequirementForm: React.FC<RequirementFormProps> = ({ onSuccess }) => {
     setIsSubmitting(true);
 
     try {
-      // For demo purposes, use the first organization if the user is a client
-      // In a real app, we might get this from the userProfile
-      const companyId = userProfile?.role === 'client' && userProfile.organization_id
-        ? userProfile.organization_id
-        : ''; // Fallback empty string
+      // For demo purposes, use the organization_id if the user is a client
+      // In a real app, we might get this from a different source
+      let companyId = '';
+      
+      if (userProfile?.role === 'client') {
+        // For client users, try to get their organization_id if present in raw data
+        const clientData = await requirementService.getClientData(user.id);
+        companyId = clientData?.organization_id || '';
+      }
       
       // Transform the data with Zod to ensure skills is a string[]
       const processedData = formSchema.parse(data) as ProcessedFormData;

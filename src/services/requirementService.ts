@@ -1,100 +1,86 @@
-
-import { supabaseTable, castResult } from "@/utils/supabaseHelpers";
-import { supabase } from "@/integrations/supabase/client";
-import { 
-  Requirement, 
-  CreateRequirementRequest, 
-  UpdateRequirementRequest,
-  RequirementStatus 
-} from "@/types/requirement";
-import { toast } from "sonner";
+import { CreateRequirementRequest, Requirement } from '@/types/requirement';
+import { supabase, typedSupabase } from '@/integrations/supabase/client';
 
 export const requirementService = {
-  async createRequirement(request: CreateRequirementRequest): Promise<Requirement | null> {
-    try {
-      const { data, error } = await supabaseTable('requirements')
-        .insert({
-          title: request.title,
-          description: request.description,
-          number_of_positions: request.number_of_positions,
-          skills: request.skills,
-          years_of_experience: request.years_of_experience,
-          price_per_interview: request.price_per_interview,
-          company_id: request.company_id,
-          raised_by: (await supabase.auth.getUser()).data.user?.id || '',
-        })
-        .select()
-        .single();
+  async getRequirements(filters?: { status: string }): Promise<Requirement[]> {
+    let query = typedSupabase.requirements().select('*');
 
-      if (error) throw error;
-      return castResult<Requirement>(data);
-    } catch (error: any) {
-      toast.error(`Failed to create requirement: ${error.message}`);
-      return null;
+    if (filters?.status) {
+      query = query.eq('status', filters.status);
     }
-  },
 
-  async getRequirements(filters?: { status?: RequirementStatus }): Promise<Requirement[]> {
-    try {
-      let query = supabaseTable('requirements')
-        .select('*');
+    const { data, error } = await query;
 
-      if (filters?.status) {
-        query = query.eq('status', filters.status);
-      }
-
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return castResult<Requirement[]>(data);
-    } catch (error: any) {
-      toast.error(`Failed to fetch requirements: ${error.message}`);
-      return [];
+    if (error) {
+      console.error('Error fetching requirements:', error);
+      throw new Error('Failed to fetch requirements');
     }
+
+    return data || [];
   },
 
   async getRequirementById(id: string): Promise<Requirement | null> {
-    try {
-      const { data, error } = await supabaseTable('requirements')
-        .select('*')
-        .eq('id', id)
-        .single();
+    const { data, error } = await typedSupabase
+      .requirements()
+      .select('*')
+      .eq('id', id)
+      .single();
 
-      if (error) throw error;
-      return castResult<Requirement>(data);
-    } catch (error: any) {
-      toast.error(`Failed to fetch requirement: ${error.message}`);
+    if (error) {
+      console.error('Error fetching requirement:', error);
       return null;
     }
+
+    return data;
   },
 
-  async updateRequirement(id: string, updates: UpdateRequirementRequest): Promise<Requirement | null> {
-    try {
-      const { data, error } = await supabaseTable('requirements')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
+  async createRequirement(request: CreateRequirementRequest): Promise<{ id: string } | null> {
+    const { data, error } = await typedSupabase.requirements().insert([
+      {
+        ...request,
+        raised_by: supabase.auth.currentUser?.id,
+      },
+    ]).select('id').single();
 
-      if (error) throw error;
-      return castResult<Requirement>(data);
-    } catch (error: any) {
-      toast.error(`Failed to update requirement: ${error.message}`);
+    if (error) {
+      console.error('Error creating requirement:', error);
       return null;
     }
+
+    return data;
   },
 
-  async closeRequirement(id: string, status: 'Fulfilled' | 'Canceled'): Promise<boolean> {
-    try {
-      const { error } = await supabaseTable('requirements')
-        .update({ status })
-        .eq('id', id);
+  async updateRequirementStatus(id: string, status: string): Promise<boolean> {
+    const { error } = await typedSupabase
+      .requirements()
+      .update({ status })
+      .eq('id', id);
 
-      if (error) throw error;
-      return true;
-    } catch (error: any) {
-      toast.error(`Failed to close requirement: ${error.message}`);
+    if (error) {
+      console.error('Error updating requirement status:', error);
       return false;
+    }
+
+    return true;
+  },
+
+  async getClientData(userId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('organization_id')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching client data:', error);
+        return null;
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Error in getClientData:', error);
+      return null;
     }
   }
 };
