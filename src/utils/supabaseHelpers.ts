@@ -73,3 +73,46 @@ export const getCurrentUser = async () => {
     return null;
   }
 };
+
+// Get user profile from profiles table
+export const getUserProfile = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    
+    if (error) {
+      console.error("Error getting user profile:", error);
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Error getting user profile:", error);
+    return null;
+  }
+};
+
+// Update user profile in profiles table
+export const updateUserProfile = async (userId: string, profileData: any) => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(profileData)
+      .eq('id', userId)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Error updating user profile:", error);
+      return null;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    return null;
+  }
+};
