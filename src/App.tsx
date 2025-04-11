@@ -68,14 +68,14 @@ import InterviewerSupport from '@/pages/interviewer/InterviewerSupport';
 import InterviewerNotifications from '@/pages/interviewer/InterviewerNotifications';
 import InterviewerProfile from '@/pages/interviewer/InterviewerProfile';
 
-// Interviewee pages
-import IntervieweeDashboard from '@/pages/interviewee/IntervieweeDashboard';
-import IntervieweeOverview from '@/pages/interviewee/IntervieweeOverview';
-import IntervieweeInterviews from '@/pages/interviewee/IntervieweeInterviews';
-import IntervieweeCoding from '@/pages/interviewee/IntervieweeCoding';
-import IntervieweeSupport from '@/pages/interviewee/IntervieweeSupport';
-import IntervieweeNotifications from '@/pages/interviewee/IntervieweeNotifications';
-import IntervieweeProfile from '@/pages/interviewee/IntervieweeProfile';
+// Candidate pages (renamed from Interviewee)
+import CandidateDashboard from '@/pages/candidate/CandidateDashboard';
+import CandidateOverview from '@/pages/candidate/CandidateOverview';
+import CandidateInterviews from '@/pages/candidate/CandidateInterviews';
+import CandidateCoding from '@/pages/candidate/CandidateCoding';
+import CandidateSupport from '@/pages/candidate/CandidateSupport';
+import CandidateNotifications from '@/pages/candidate/CandidateNotifications';
+import CandidateProfile from '@/pages/candidate/CandidateProfile';
 
 import './App.css';
 import { Toaster as SonnerToaster } from 'sonner';
@@ -229,19 +229,26 @@ function App() {
               <Route path="profile" element={<InterviewerProfile />} />
             </Route>
             
-            {/* Interviewee Dashboard Routes */}
-            <Route path="/interviewee" element={
+            {/* Candidate Dashboard Routes (renamed from Interviewee) */}
+            <Route path="/candidate" element={
               <ProtectedRoute requiredRoles={['candidate']}>
-                <IntervieweeDashboard />
+                <CandidateDashboard />
               </ProtectedRoute>
             }>
-              <Route index element={<IntervieweeOverview />} />
-              <Route path="interviews" element={<IntervieweeInterviews />} />
-              <Route path="coding" element={<IntervieweeCoding />} />
-              <Route path="support" element={<IntervieweeSupport />} />
-              <Route path="notifications" element={<IntervieweeNotifications />} />
-              <Route path="profile" element={<IntervieweeProfile />} />
+              <Route index element={<CandidateOverview />} />
+              <Route path="interviews" element={<CandidateInterviews />} />
+              <Route path="coding" element={<CandidateCoding />} />
+              <Route path="support" element={<CandidateSupport />} />
+              <Route path="notifications" element={<CandidateNotifications />} />
+              <Route path="profile" element={<CandidateProfile />} />
             </Route>
+            
+            {/* Legacy routes (for backward compatibility) */}
+            <Route path="/interviewee/*" element={
+              <ProtectedRoute requiredRoles={['candidate']}>
+                <CandidateDashboard />
+              </ProtectedRoute>
+            } />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
