@@ -68,7 +68,7 @@ export const interviewService = {
         .from('interviews_schedule')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         throw new Error(`Error fetching interview: ${error.message}`);
@@ -104,7 +104,7 @@ export const interviewService = {
         .update({ feedback: toJson(feedback) })
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         throw new Error(`Error adding feedback to interview: ${error.message}`);
@@ -139,7 +139,7 @@ export const interviewService = {
         .update({ status })
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         throw new Error(`Error updating interview status: ${error.message}`);
@@ -168,11 +168,17 @@ export const interviewService = {
    */
   async scheduleInterview(interviewData: Omit<Interview, 'id' | 'created_at' | 'updated_at'>): Promise<Interview | null> {
     try {
+      // Ensure interviewData has all required fields and proper Json format for feedback
+      const processedData = {
+        ...interviewData,
+        feedback: interviewData.feedback ? toJson(interviewData.feedback) : null
+      };
+
       const { data, error } = await supabase
         .from('interviews_schedule')
-        .insert(interviewData)
+        .insert(processedData)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         throw new Error(`Error scheduling interview: ${error.message}`);

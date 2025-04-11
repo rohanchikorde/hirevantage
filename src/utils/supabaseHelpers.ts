@@ -39,3 +39,37 @@ export const checkSupabaseConnection = async (): Promise<boolean> => {
 export const toJson = <T>(data: T): Json => {
   return data as unknown as Json;
 };
+
+// Helper to check if user is authenticated
+export const isAuthenticated = async (): Promise<boolean> => {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.error("Error checking authentication:", error);
+      return false;
+    }
+    
+    return !!session;
+  } catch (error) {
+    console.error("Error checking authentication:", error);
+    return false;
+  }
+};
+
+// Get current user
+export const getCurrentUser = async () => {
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    if (error) {
+      console.error("Error getting current user:", error);
+      return null;
+    }
+    
+    return user;
+  } catch (error) {
+    console.error("Error getting current user:", error);
+    return null;
+  }
+};
