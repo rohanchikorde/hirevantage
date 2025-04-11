@@ -1,69 +1,122 @@
-# Welcome to your Lovable project
+# Hirevantage
 
-## Project info
+A modern, full-stack hiring management platform built with React, TypeScript, and Supabase. Hirevantage streamlines the entire hiring process from job postings to candidate management and interview scheduling.
 
-**URL**: https://lovable.dev/projects/941f2515-829c-4aeb-8786-82f75176378d
+## Features
 
-## How can I edit this code?
+- **Requirement Management**
+  - Create and manage job requirements
+  - Track job openings and status
+  - Set skill requirements and qualifications
 
-There are several ways of editing your application.
+- **Candidate Management**
+  - Candidate profile management
+  - Resume upload and storage
+  - Status tracking (New, In Review, Interviewed, etc.)
+  - Bulk candidate import
 
-**Use Lovable**
+- **Interview Management**
+  - Schedule and manage interviews
+  - Interviewer assignment
+  - Interview tracking and status updates
+  - Interviewee dashboard
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/941f2515-829c-4aeb-8786-82f75176378d) and start prompting.
+- **Ticket System**
+  - Issue tracking for hiring process
+  - Priority-based ticket management
+  - Status updates and notifications
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Admin Dashboard**
+  - Company management
+  - Interviewer management
+  - Skill management
+  - Settings configuration
 
-**Use your preferred IDE**
+## Tech Stack
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **Frontend**
+  - React 18
+  - TypeScript
+  - Tailwind CSS
+  - Shadcn UI components
+  - React Router
+  - Sonner (Toast notifications)
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **Backend**
+  - Supabase (PostgreSQL + Auth)
+  - RESTful API
+  - File storage for resumes
 
-Follow these steps:
+- **Features**
+  - Dark/Light mode support
+  - Responsive design
+  - Real-time updates
+  - File upload support
+  - Authentication system
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Getting Started
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Prerequisites
 
-# Step 3: Install the necessary dependencies.
-npm i
+- Node.js (v18 or higher)
+- npm or yarn
+- Supabase account
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/rohanchikorde/hirevantage.git
+   cd hirevantage
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
+3. Set up environment variables:
+   Create a `.env` file in the root directory with:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Project Structure
+
+```
+src/
+├── components/     # Reusable UI components
+├── pages/          # Page components
+├── services/       # API services
+├── types/          # TypeScript type definitions
+├── utils/          # Utility functions
+└── contexts/       # React context providers
 ```
 
-**Edit a file directly in GitHub**
+## Contributing
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-**Use GitHub Codespaces**
+## License
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## What technologies are used for this project?
+## Support
 
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/941f2515-829c-4aeb-8786-82f75176378d) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+For support, email support@hirevantage.com or create an issue in the repository.
