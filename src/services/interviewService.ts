@@ -59,9 +59,9 @@ export const interviewService = {
         interviewer_name: item.interviewers?.name,
         requirement_title: item.requirements?.title,
         feedback: parseInterviewFeedback(item.feedback)
-      })) as unknown as Interview[];
+      }));
       
-      return interviews;
+      return interviews as unknown as Interview[];
     } catch (error) {
       console.error('Error in getInterviews:', error);
       throw error;
@@ -96,9 +96,9 @@ export const interviewService = {
         interviewer_name: data.interviewers?.name,
         requirement_title: data.requirements?.title,
         feedback: parseInterviewFeedback(data.feedback)
-      } as unknown as Interview;
+      };
       
-      return interview;
+      return interview as unknown as Interview;
     } catch (error) {
       console.error('Error in getInterviewById:', error);
       throw error;
@@ -129,11 +129,13 @@ export const interviewService = {
       }
       
       // Ensure status is of type InterviewStatus
-      return {
+      const result = {
         ...data,
         status: data.status as InterviewStatus,
         feedback: parseInterviewFeedback(data.feedback)
-      } as unknown as Interview;
+      };
+      
+      return result as unknown as Interview;
     } catch (error) {
       console.error('Error in scheduleInterview:', error);
       throw error;
@@ -155,11 +157,13 @@ export const interviewService = {
       }
       
       // Ensure status is of type InterviewStatus
-      return {
+      const result = {
         ...data,
         status: data.status as InterviewStatus,
         feedback: parseInterviewFeedback(data.feedback)
-      } as unknown as Interview;
+      };
+      
+      return result as unknown as Interview;
     } catch (error) {
       console.error('Error in updateInterviewStatus:', error);
       throw error;
@@ -184,11 +188,13 @@ export const interviewService = {
       }
       
       // Ensure status is of type InterviewStatus
-      return {
+      const result = {
         ...data,
         status: data.status as InterviewStatus,
         feedback: parseInterviewFeedback(data.feedback)
-      } as unknown as Interview;
+      };
+      
+      return result as unknown as Interview;
     } catch (error) {
       console.error('Error in addInterviewFeedback:', error);
       throw error;
