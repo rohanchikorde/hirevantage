@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Requirement } from '@/types/requirement';
@@ -130,6 +129,21 @@ const RequirementDetail: React.FC = () => {
     } catch (error) {
       console.error('Error updating candidate status:', error);
       toast.error('Failed to update candidate status');
+    }
+  };
+
+  const handleDeleteRequirement = async () => {
+    if (!requirement || !id) return;
+    
+    try {
+      const success = await requirementService.deleteRequirement(id);
+      if (success) {
+        toast.success('Requirement deleted successfully');
+        navigate('/dashboard/requirements');
+      }
+    } catch (error) {
+      console.error('Error deleting requirement:', error);
+      toast.error('Failed to delete requirement');
     }
   };
 
@@ -355,6 +369,30 @@ const RequirementDetail: React.FC = () => {
                 </DialogContent>
               </Dialog>
             )}
+
+            {/* Add delete button */}
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button 
+                  className="w-full" 
+                  variant="destructive"
+                >
+                  Delete Requirement
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Delete Requirement</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to delete this requirement? This action cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="mt-4">
+                  <Button variant="outline" onClick={() => {}}>Cancel</Button>
+                  <Button variant="destructive" onClick={handleDeleteRequirement}>Delete</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </CardContent>
         </Card>
       </div>

@@ -71,12 +71,16 @@ const RequirementForm: React.FC<RequirementFormProps> = ({ onSuccess }) => {
     setIsSubmitting(true);
 
     try {
-      // For demo purposes, use the first organization
-      // In a real app, we would let the user select their organization
+      console.log("Form data:", data);
+      console.log("User:", user);
+      
+      // For demo purposes, use the first organization or the user's company if available
       const companyId = user.company || '';
+      console.log("Company ID:", companyId);
       
       // Transform the data with Zod to ensure skills is a string[]
       const processedData = formSchema.parse(data) as ProcessedFormData;
+      console.log("Processed data:", processedData);
 
       const request: CreateRequirementRequest = {
         title: processedData.title,
@@ -88,13 +92,17 @@ const RequirementForm: React.FC<RequirementFormProps> = ({ onSuccess }) => {
         company_id: companyId,
       };
 
+      console.log("Sending request to create requirement:", request);
       const result = await requirementService.createRequirement(request);
       if (result) {
         toast.success('Requirement created successfully');
         form.reset();
         onSuccess?.(result.id);
+      } else {
+        throw new Error("Failed to create requirement. Please try again.");
       }
     } catch (error: any) {
+      console.error("Error creating requirement:", error);
       toast.error(`Error creating requirement: ${error.message}`);
     } finally {
       setIsSubmitting(false);
