@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -30,11 +30,45 @@ import {
   Briefcase,
   UserRound
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard: React.FC = () => {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [userProfile, setUserProfile] = useState<{ full_name: string, initials: string } | null>(null);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchUserProfile();
+    }
+  }, [user?.id]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user?.id)
+        .single();
+
+      if (error) throw error;
+      
+      if (data) {
+        const nameParts = data.full_name.split(' ');
+        const initials = nameParts.length > 1 
+          ? (nameParts[0][0] + nameParts[1][0]).toUpperCase() 
+          : data.full_name.substring(0, 2).toUpperCase();
+          
+        setUserProfile({
+          full_name: data.full_name,
+          initials: initials
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -161,6 +195,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </Sidebar>
+      
       <div className="flex-1 flex flex-col">
         <header className="sticky top-0 z-10 flex items-center justify-between h-16 px-4 border-b shrink-0 bg-white dark:bg-gray-950 sm:px-6 shadow-sm">
           <div className="flex items-center gap-4 lg:hidden">
@@ -297,9 +332,11 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center gap-4">
             <Link to="/dashboard/admin/settings" className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white font-medium">
-                AJ
+                {userProfile?.initials || "U"}
               </div>
-              <span className="text-sm font-medium hidden sm:inline">Alex Johnson</span>
+              <span className="text-sm font-medium hidden sm:inline">
+                {userProfile?.full_name || "User"}
+              </span>
             </Link>
           </div>
         </header>

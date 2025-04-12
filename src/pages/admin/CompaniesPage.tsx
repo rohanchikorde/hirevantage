@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Table, 
@@ -21,23 +21,47 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Skeleton } from '@/components/ui/skeleton';
-import { mockCompanies } from '@/data/mockData';
 import { ChevronDown, ChevronRight, Plus, Search, ArrowUpDown } from 'lucide-react';
 import { toast } from 'sonner';
+import { companyService, Company } from '@/services/companyService';
 
 const CompaniesPage: React.FC = () => {
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [sortField, setSortField] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
-  const sortedCompanies = [...mockCompanies]
-    .filter(company => 
-      company.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      company.contactPerson.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      company.email.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
+
+  const fetchCompanies = async () => {
+    setIsLoading(true);
+    try {
+      const data = await companyService.getCompanies();
+      setCompanies(data);
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSearch = async () => {
+    setIsLoading(true);
+    try {
+      const data = await companyService.getCompanies(searchQuery);
+      setCompanies(data);
+    } catch (error) {
+      console.error('Error searching companies:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const sortedCompanies = [...companies]
     .sort((a, b) => {
       if (!sortField) return 0;
       
@@ -67,7 +91,7 @@ const CompaniesPage: React.FC = () => {
   };
   
   const handleCompanyAction = (companyId: string, action: string) => {
-    const company = mockCompanies.find(c => c.id === companyId);
+    const company = companies.find(c => c.id === companyId);
     if (company) {
       switch (action) {
         case 'view':
@@ -108,20 +132,20 @@ const CompaniesPage: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="flex flex-col">
               <span className="text-sm text-muted-foreground">Total Companies</span>
-              <span className="text-2xl font-bold">{mockCompanies.length}</span>
+              <span className="text-2xl font-bold">{companies.length}</span>
             </div>
             <div className="flex flex-col">
               <span className="text-sm text-muted-foreground">Active</span>
-              <span className="text-2xl font-bold">8</span>
+              <span className="text-2xl font-bold">{companies.length}</span>
             </div>
             <div className="flex flex-col">
               <span className="text-sm text-muted-foreground">Interviews (This Month)</span>
-              <span className="text-2xl font-bold">32</span>
+              <span className="text-2xl font-bold">0</span>
             </div>
             <div className="flex flex-col">
               <span className="text-sm text-muted-foreground">Avg. Satisfaction</span>
               <div className="flex items-center mt-1">
-                <span className="text-xl font-bold mr-1">4.8</span>
+                <span className="text-xl font-bold mr-1">0</span>
                 <span className="text-yellow-500">★★★★★</span>
               </div>
             </div>
@@ -139,6 +163,7 @@ const CompaniesPage: React.FC = () => {
                 placeholder="Search companies..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 className="pl-9"
               />
             </div>
@@ -166,14 +191,13 @@ const CompaniesPage: React.FC = () => {
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </div>
                     </TableHead>
-                    <TableHead className="cursor-pointer" onClick={() => handleSort('contactPerson')}>
+                    <TableHead className="cursor-pointer" onClick={() => handleSort('industry')}>
                       <div className="flex items-center">
-                        Contact Person
+                        Industry
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </div>
                     </TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
+                    <TableHead>Address</TableHead>
                     <TableHead className="cursor-pointer" onClick={() => handleSort('interviewsCount')}>
                       <div className="flex items-center">
                         Interviews
@@ -203,10 +227,9 @@ const CompaniesPage: React.FC = () => {
                           <Checkbox id={`select-${company.id}`} aria-label={`Select ${company.name}`} />
                         </TableCell>
                         <TableCell className="font-medium">{company.name}</TableCell>
-                        <TableCell>{company.contactPerson}</TableCell>
-                        <TableCell>{company.email}</TableCell>
-                        <TableCell>{company.phone}</TableCell>
-                        <TableCell>{company.interviewsCount}</TableCell>
+                        <TableCell>{company.industry}</TableCell>
+                        <TableCell>{company.address}</TableCell>
+                        <TableCell>{company.interviewsCount || 0}</TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>

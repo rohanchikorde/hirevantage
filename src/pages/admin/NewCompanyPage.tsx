@@ -66,8 +66,6 @@ const NewCompanyPage: React.FC = () => {
           name: values.name,
           industry: values.industry,
           address: values.address,
-          // Additional info could be stored in a metadata JSON column if needed
-          // For now, we'll store contact info in a separate table or add columns later
         })
         .select()
         .single();
@@ -75,6 +73,14 @@ const NewCompanyPage: React.FC = () => {
       if (error) {
         throw error;
       }
+      
+      // Store contact information in a metadata object or additional tables if needed
+      // For now, just log it
+      console.log("Contact information:", {
+        contactPerson: values.contactPerson,
+        email: values.email,
+        phone: values.phone
+      });
       
       toast.success("Company created successfully!");
       
