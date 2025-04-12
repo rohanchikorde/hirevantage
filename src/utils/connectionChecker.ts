@@ -43,7 +43,8 @@ export const logTableSchemas = async () => {
     'candidates', 
     'organizations',
     'requirements',
-    'interviews_schedule'
+    'interviews_schedule',
+    'skills'
   ] as const; // Using const assertion to create a tuple of literal types
   
   console.log("Checking Supabase table schemas...");
