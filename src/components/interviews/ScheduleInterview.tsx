@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -38,7 +37,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Loader2, CalendarIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { interviewService, ScheduleInterviewRequest } from '@/services/interviewService';
+import { interviewService } from '@/services/interviewService';
+import { ScheduleInterviewRequest } from '@/types/interview';
 
 interface Requirement {
   id: string;
