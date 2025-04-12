@@ -35,6 +35,18 @@ export interface Interview {
   };
 }
 
+// Helper function to convert Json to InterviewFeedback
+const convertJsonToFeedback = (json: Json | null): InterviewFeedback | null => {
+  if (!json) return null;
+  
+  // Ensure the json has the required properties of InterviewFeedback
+  if (typeof json === 'object' && json !== null && 'rating' in json && 'comments' in json) {
+    return json as unknown as InterviewFeedback;
+  }
+  
+  return null;
+};
+
 export const interviewService = {
   async scheduleInterview(request: ScheduleInterviewRequest): Promise<Interview | null> {
     try {
@@ -53,11 +65,12 @@ export const interviewService = {
       if (error) throw error;
       toast.success('Interview scheduled successfully');
       
-      // Convert string status to InterviewStatus type
+      // Convert data to Interview type with proper feedback handling
       return data ? {
         ...data,
         status: data.status as InterviewStatus,
-        updated_at: data.updated_at || null
+        updated_at: data.updated_at || null,
+        feedback: convertJsonToFeedback(data.feedback)
       } : null;
     } catch (error: any) {
       toast.error(`Failed to schedule interview: ${error.message}`);
@@ -93,12 +106,12 @@ export const interviewService = {
 
       if (error) throw error;
       
-      // Convert database rows to Interview objects with proper types
+      // Convert database rows to Interview objects with proper types and feedback handling
       return (data || []).map(item => ({
         ...item,
         status: item.status as InterviewStatus,
         updated_at: item.updated_at || null,
-        feedback: item.feedback as InterviewFeedback | null
+        feedback: convertJsonToFeedback(item.feedback)
       }));
     } catch (error: any) {
       toast.error(`Failed to fetch interviews: ${error.message}`);
@@ -121,12 +134,12 @@ export const interviewService = {
 
       if (error) throw error;
       
-      // Convert database row to Interview object with proper types
+      // Convert database row to Interview object with proper types and feedback handling
       return data ? {
         ...data,
         status: data.status as InterviewStatus,
         updated_at: data.updated_at || null,
-        feedback: data.feedback as InterviewFeedback | null
+        feedback: convertJsonToFeedback(data.feedback)
       } : null;
     } catch (error: any) {
       toast.error(`Failed to fetch interview: ${error.message}`);
@@ -152,8 +165,9 @@ export const interviewService = {
 
   async addInterviewFeedback(id: string, request: AddInterviewFeedbackRequest): Promise<boolean> {
     try {
-      // Convert InterviewFeedback to Json compatible object
-      const feedbackJson: Json = request.feedback as unknown as Json;
+      // We need to ensure the feedback object is compatible with Json type
+      // by serializing and then parsing it
+      const feedbackJson = JSON.parse(JSON.stringify(request.feedback)) as Json;
       
       const { error } = await supabase
         .from('interviews_schedule')
@@ -174,10 +188,14 @@ export const interviewService = {
 
   async submitFeedback(id: string, feedback: any): Promise<boolean> {
     try {
+      // We need to ensure the feedback object is compatible with Json type
+      // by serializing and then parsing it
+      const feedbackJson = JSON.parse(JSON.stringify(feedback)) as Json;
+      
       const { error } = await supabase
         .from('interviews_schedule')
         .update({ 
-          feedback: feedback as Json,
+          feedback: feedbackJson,
           status: 'Completed'
         })
         .eq('id', id);
