@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { InterviewStatus, AddInterviewFeedbackRequest, UpdateInterviewStatusRequest } from "@/types/interview";
 
 export interface ScheduleInterviewRequest {
   requirement_id: string;
@@ -15,7 +16,7 @@ export interface Interview {
   interviewer_id: string;
   candidate_id: string;
   scheduled_at: string;
-  status: string;
+  status: InterviewStatus;
   feedback?: any;
   created_at: string;
   updated_at?: string;
@@ -90,19 +91,59 @@ export const interviewService = {
       return [];
     }
   },
+  
+  async getInterviewById(id: string): Promise<Interview | null> {
+    try {
+      const { data, error } = await supabase
+        .from('interviews_schedule')
+        .select(`
+          *,
+          requirement:requirement_id(title, skills),
+          interviewer:interviewer_id(name, email),
+          candidate:candidate_id(full_name, email)
+        `)
+        .eq('id', id)
+        .single();
 
-  async updateInterviewStatus(id: string, status: string): Promise<boolean> {
+      if (error) throw error;
+      return data;
+    } catch (error: any) {
+      toast.error(`Failed to fetch interview: ${error.message}`);
+      return null;
+    }
+  },
+
+  async updateInterviewStatus(id: string, statusRequest: UpdateInterviewStatusRequest): Promise<boolean> {
     try {
       const { error } = await supabase
         .from('interviews_schedule')
-        .update({ status })
+        .update({ status: statusRequest.status })
         .eq('id', id);
 
       if (error) throw error;
-      toast.success(`Interview ${status.toLowerCase()} successfully`);
+      toast.success(`Interview ${statusRequest.status.toLowerCase()} successfully`);
       return true;
     } catch (error: any) {
       toast.error(`Failed to update interview: ${error.message}`);
+      return false;
+    }
+  },
+
+  async addInterviewFeedback(id: string, request: AddInterviewFeedbackRequest): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('interviews_schedule')
+        .update({ 
+          feedback: request.feedback,
+          status: 'Completed'
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+      toast.success('Feedback submitted successfully');
+      return true;
+    } catch (error: any) {
+      toast.error(`Failed to submit feedback: ${error.message}`);
       return false;
     }
   },

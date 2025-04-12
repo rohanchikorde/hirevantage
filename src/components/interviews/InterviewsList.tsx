@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { InterviewWithDetails, InterviewStatus } from '@/types/interview';
-import { interviewService } from '@/services/interviewService';
+import { interviewService, Interview } from '@/services/interviewService';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -68,7 +68,17 @@ const InterviewsList: React.FC = () => {
       const data = await interviewService.getInterviews(
         statusFilter !== 'all' ? { status: statusFilter } : undefined
       );
-      setInterviews(data);
+      
+      // Convert Interview[] to InterviewWithDetails[] by mapping the nested properties
+      const interviewsWithDetails: InterviewWithDetails[] = data.map(interview => ({
+        ...interview,
+        candidate_name: interview.candidate?.full_name,
+        interviewer_name: interview.interviewer?.name,
+        requirement_title: interview.requirement?.title,
+        status: interview.status as InterviewStatus
+      }));
+      
+      setInterviews(interviewsWithDetails);
     } catch (error) {
       console.error('Error fetching interviews:', error);
       toast.error('Failed to load interviews');

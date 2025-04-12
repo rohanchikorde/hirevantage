@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { InterviewWithDetails, InterviewStatus, AddInterviewFeedbackRequest, InterviewFeedback } from '@/types/interview';
+import { InterviewWithDetails, InterviewStatus, AddInterviewFeedbackRequest, InterviewFeedback, UpdateInterviewStatusRequest } from '@/types/interview';
 import { interviewService } from '@/services/interviewService';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -132,7 +132,8 @@ const InterviewDetail: React.FC = () => {
     
     try {
       setIsUpdating(true);
-      await interviewService.updateInterviewStatus(id, { status: newStatus });
+      const statusRequest: UpdateInterviewStatusRequest = { status: newStatus };
+      await interviewService.updateInterviewStatus(id, statusRequest);
       setInterview(prev => prev ? { ...prev, status: newStatus } : null);
       toast.success(`Interview status updated to ${newStatus}`);
     } catch (error) {
