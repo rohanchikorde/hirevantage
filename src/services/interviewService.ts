@@ -1,39 +1,8 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { InterviewStatus, AddInterviewFeedbackRequest, UpdateInterviewStatusRequest, InterviewFeedback, InterviewWithDetails } from "@/types/interview";
+import { InterviewStatus, AddInterviewFeedbackRequest, UpdateInterviewStatusRequest, InterviewFeedback, Interview, InterviewWithDetails, ScheduleInterviewRequest } from "@/types/interview";
 import { Json } from "@/integrations/supabase/types";
-
-export interface ScheduleInterviewRequest {
-  requirement_id: string;
-  interviewer_id: string;
-  candidate_id: string;
-  scheduled_at: string;
-}
-
-export interface Interview {
-  id: string;
-  requirement_id: string;
-  interviewer_id: string;
-  candidate_id: string;
-  scheduled_at: string;
-  status: InterviewStatus;
-  feedback?: InterviewFeedback | null;
-  created_at: string;
-  updated_at: string | null;
-  requirement?: {
-    title: string;
-    skills: string[];
-  };
-  interviewer?: {
-    name: string;
-    email: string;
-  };
-  candidate?: {
-    full_name: string;
-    email: string;
-  };
-}
 
 // Helper function to convert Json to InterviewFeedback
 const convertJsonToFeedback = (json: Json | null): InterviewFeedback | null => {

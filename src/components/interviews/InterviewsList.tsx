@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { InterviewWithDetails, InterviewStatus } from '@/types/interview';
-import { interviewService, Interview } from '@/services/interviewService';
+import { interviewService } from '@/services/interviewService';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

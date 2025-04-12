@@ -22,9 +22,24 @@ export interface Interview {
   feedback?: InterviewFeedback | null;
   created_at: string;
   updated_at: string | null;
+  // Optional nested properties from joins
+  candidate?: {
+    full_name: string;
+    email: string;
+  };
+  interviewer?: {
+    name: string;
+    email: string;
+  };
+  requirement?: {
+    title: string;
+    skills: string[];
+  };
 }
 
-export interface InterviewWithDetails extends Interview {
+export interface InterviewWithDetails extends Omit<Interview, 'status' | 'updated_at'> {
+  status: InterviewStatus;
+  updated_at: string | null;
   candidate_name?: string;
   interviewer_name?: string;
   requirement_title?: string;

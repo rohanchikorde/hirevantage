@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { InterviewWithDetails, InterviewStatus, AddInterviewFeedbackRequest, InterviewFeedback, UpdateInterviewStatusRequest } from '@/types/interview';
@@ -131,7 +130,7 @@ const InterviewDetail: React.FC = () => {
         console.error(error);
       } finally {
         setIsLoading(false);
-      }
+        }
     };
     
     fetchInterview();
