@@ -9,6 +9,7 @@ export interface InterviewFeedback {
   strengths?: string[];
   weaknesses?: string[];
   recommendation?: string;
+  [key: string]: any; // Add index signature to make compatible with Json type
 }
 
 export interface Interview {
@@ -20,7 +21,7 @@ export interface Interview {
   status: InterviewStatus;
   feedback?: InterviewFeedback | null;
   created_at: string;
-  updated_at: string;
+  updated_at: string | null;
 }
 
 export interface InterviewWithDetails extends Interview {

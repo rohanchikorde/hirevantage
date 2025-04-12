@@ -103,17 +103,28 @@ const InterviewDetail: React.FC = () => {
       try {
         setIsLoading(true);
         const data = await interviewService.getInterviewById(id);
-        setInterview(data);
         
-        // Prefill form if feedback exists
-        if (data?.feedback && isValidFeedback(data.feedback)) {
-          form.reset({
-            rating: data.feedback.rating,
-            comments: data.feedback.comments,
-            strengths: data.feedback.strengths?.join(', ') || '',
-            weaknesses: data.feedback.weaknesses?.join(', ') || '',
-            recommendation: data.feedback.recommendation || ''
-          });
+        if (data) {
+          // Convert Interview to InterviewWithDetails
+          const interviewWithDetails: InterviewWithDetails = {
+            ...data,
+            candidate_name: data.candidate?.full_name,
+            interviewer_name: data.interviewer?.name,
+            requirement_title: data.requirement?.title,
+          };
+          
+          setInterview(interviewWithDetails);
+          
+          // Prefill form if feedback exists
+          if (data.feedback && isValidFeedback(data.feedback)) {
+            form.reset({
+              rating: data.feedback.rating,
+              comments: data.feedback.comments,
+              strengths: data.feedback.strengths?.join(', ') || '',
+              weaknesses: data.feedback.weaknesses?.join(', ') || '',
+              recommendation: data.feedback.recommendation || ''
+            });
+          }
         }
       } catch (error) {
         toast.error('Failed to load interview details');
@@ -165,8 +176,19 @@ const InterviewDetail: React.FC = () => {
       await interviewService.addInterviewFeedback(id, feedbackRequest);
       
       // Update local state
-      const updatedInterview = await interviewService.getInterviewById(id);
-      setInterview(updatedInterview);
+      const updatedData = await interviewService.getInterviewById(id);
+      
+      if (updatedData) {
+        // Convert Interview to InterviewWithDetails
+        const updatedInterview: InterviewWithDetails = {
+          ...updatedData,
+          candidate_name: updatedData.candidate?.full_name,
+          interviewer_name: updatedData.interviewer?.name,
+          requirement_title: updatedData.requirement?.title,
+        };
+        
+        setInterview(updatedInterview);
+      }
       
       toast.success('Feedback submitted successfully');
     } catch (error) {

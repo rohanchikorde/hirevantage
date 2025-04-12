@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -75,7 +74,6 @@ const InterviewsList: React.FC = () => {
         candidate_name: interview.candidate?.full_name,
         interviewer_name: interview.interviewer?.name,
         requirement_title: interview.requirement?.title,
-        status: interview.status as InterviewStatus
       }));
       
       setInterviews(interviewsWithDetails);
