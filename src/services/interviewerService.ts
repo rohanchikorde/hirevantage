@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Interviewer } from "@/types/interviewer";
@@ -51,10 +52,10 @@ export const interviewerService = {
   },
 
   /**
-   * Fetches the count of new interviewer signups within a specified period
-   * @param days Number of days to look back
+   * Fetches the count of newly signed-up interviewers within a specified period
+   * @param days Number of days to look back (default 30)
    */
-  async getNewInterviewers(days: number = 7): Promise<number> {
+  async getNewInterviewers(days: number = 30): Promise<number> {
     try {
       console.log(`Fetching new interviewers in the last ${days} days`);
       // Calculate the date for the specified days ago
@@ -95,35 +96,6 @@ export const interviewerService = {
         }
       )
       .subscribe();
-  },
-
-  /**
-   * Fetches the count of newly signed-up interviewers within a specified period
-   * @param days Number of days to look back (default 30)
-   */
-  async getNewInterviewers(days: number = 30): Promise<number> {
-    try {
-      console.log(`Fetching new interviewers in the last ${days} days`);
-      // Calculate the date for the specified days ago
-      const dateFrom = new Date();
-      dateFrom.setDate(dateFrom.getDate() - days);
-      
-      const { count, error } = await supabase
-        .from('interviewers')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', dateFrom.toISOString());
-      
-      if (error) {
-        console.error("Error fetching new interviewers:", error);
-        throw error;
-      }
-      
-      return count || 0;
-    } catch (error: any) {
-      console.error("Error in getNewInterviewers:", error);
-      toast.error(`Failed to fetch new interviewers count: ${error.message}`);
-      return 0;
-    }
   },
 
   /**
