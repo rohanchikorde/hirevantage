@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -25,6 +24,7 @@ import { getAllInterviewers, mockCompanies } from '@/data/mockData';
 import { ChevronRight, Edit, Trash2, Plus, Search, FilterX, Calendar, BarChart, Users, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { interviewerService } from '@/services/interviewerService';
 
 const InterviewerManagementPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -58,20 +58,10 @@ const InterviewerManagementPage: React.FC = () => {
     setStatsError(null);
     
     try {
-      // Fetch total interviewers count
-      const { count: totalInterviewers, error: totalError } = await supabase
-        .from('interviewers')
-        .select('*', { count: 'exact', head: true });
-      
-      if (totalError) throw new Error(`Error fetching total interviewers: ${totalError.message}`);
-      
-      // Fetch registered users with 'interviewer' role in profiles
-      const { count: interviewersSignedUp, error: signedUpError } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('role', 'interviewer');
-      
-      if (signedUpError) throw new Error(`Error fetching signed up interviewers: ${signedUpError.message}`);
+      // Use our new service to fetch interviewer counts
+      const totalInterviewers = await interviewerService.getTotalInterviewers();
+      const availableInterviewers = await interviewerService.getAvailableInterviewers();
+      const interviewersSignedUp = await interviewerService.getNewInterviewers(30); // New signups in last 30 days
       
       // Calculate current week's start date (Sunday) and end date (Saturday)
       const today = new Date();
@@ -97,25 +87,11 @@ const InterviewerManagementPage: React.FC = () => {
       
       if (interviewsError) throw new Error(`Error fetching interviews this week: ${interviewsError.message}`);
       
-      // For available interviewers, we'll count those who don't have interviews scheduled right now
-      // This is a simplification - in a real app, you might have a status field
-      const { data: busyInterviewerIds, error: busyError } = await supabase
-        .from('interviews_schedule')
-        .select('interviewer_id')
-        .eq('status', 'Scheduled')
-        .lte('scheduled_at', new Date().toISOString());
-      
-      if (busyError) throw new Error(`Error fetching busy interviewers: ${busyError.message}`);
-      
-      // Calculate available interviewers (total minus busy)
-      const busyInterviewers = new Set(busyInterviewerIds?.map(item => item.interviewer_id) || []);
-      const availableInterviewers = totalInterviewers ? totalInterviewers - busyInterviewers.size : 0;
-      
       setStats({
-        totalInterviewers: totalInterviewers || 0,
+        totalInterviewers: totalInterviewers,
         availableInterviewers: availableInterviewers,
         interviewsThisWeek: interviewsThisWeek || 0,
-        interviewersSignedUp: interviewersSignedUp || 0
+        interviewersSignedUp: interviewersSignedUp
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -128,6 +104,19 @@ const InterviewerManagementPage: React.FC = () => {
   
   useEffect(() => {
     fetchStats();
+    
+    // Set up real-time subscription to interviewers table
+    const subscription = interviewerService.subscribeToInterviewers(() => {
+      console.log("Real-time update received, refreshing stats");
+      fetchStats();
+    });
+    
+    return () => {
+      // Clean up subscription when component unmounts
+      if (subscription) {
+        supabase.removeChannel(subscription);
+      }
+    };
   }, []);
   
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -262,7 +251,7 @@ const InterviewerManagementPage: React.FC = () => {
         )}
         
         {renderStatCard(
-          "Interviewers Signed Up",
+          "New Interviewers (30d)",
           stats.interviewersSignedUp,
           <UserPlus className="h-6 w-6 text-amber-600 dark:text-amber-400" />,
           "bg-white dark:bg-gray-800",
