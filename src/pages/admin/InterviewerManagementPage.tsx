@@ -105,9 +105,9 @@ const InterviewerManagementPage: React.FC = () => {
   useEffect(() => {
     fetchStats();
     
-    // Set up real-time subscription to interviewers table
-    const subscription = interviewerService.subscribeToInterviewers(() => {
-      console.log("Real-time update received, refreshing stats");
+    // Set up real-time subscription to new interviewers
+    const subscription = interviewerService.subscribeToNewInterviewers(() => {
+      console.log("Real-time update for new interviewers received, refreshing stats");
       fetchStats();
     });
     
