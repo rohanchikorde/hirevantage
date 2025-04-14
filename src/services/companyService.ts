@@ -36,9 +36,10 @@ export const companyService = {
         name: org.name,
         industry: org.industry || '',
         address: org.address || '',
-        contactPerson: org.contact_person || '',
-        email: org.email || '',
-        phone: org.phone || '',
+        // Set optional fields to undefined since they don't exist in the database
+        contactPerson: undefined,
+        email: undefined,
+        phone: undefined,
         createdAt: org.created_at,
         // Adding placeholder for interview count until we implement that query
         interviewsCount: 0
@@ -64,9 +65,10 @@ export const companyService = {
         name: data.name,
         industry: data.industry || '',
         address: data.address || '',
-        contactPerson: data.contact_person || '',
-        email: data.email || '',
-        phone: data.phone || '',
+        // Set optional fields to undefined since they don't exist in the database
+        contactPerson: undefined,
+        email: undefined,
+        phone: undefined,
         createdAt: data.created_at,
         interviewsCount: 0 // Placeholder
       };
@@ -79,13 +81,12 @@ export const companyService = {
   async updateCompany(id: string, companyData: Partial<Company>): Promise<boolean> {
     try {
       // Convert from our interface to database column names
+      // Only include fields that exist in the database
       const dbData = {
         name: companyData.name,
         industry: companyData.industry,
-        address: companyData.address,
-        contact_person: companyData.contactPerson,
-        email: companyData.email,
-        phone: companyData.phone
+        address: companyData.address
+        // Note: contactPerson, email, and phone are not included as they don't exist in the database
       };
       
       const { error } = await supabase
