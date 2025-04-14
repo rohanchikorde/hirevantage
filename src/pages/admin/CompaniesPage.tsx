@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
@@ -210,11 +209,22 @@ const CompaniesPage: React.FC = () => {
     
     setIsSubmitting(true);
     try {
+      console.log('Submitting company update:', data);
       const success = await companyService.updateCompany(editCompany.id, data);
+      
       if (success) {
         // Update the local state with the edited company
         setCompanies(prev => prev.map(c => 
-          c.id === editCompany.id ? { ...c, ...data } : c
+          c.id === editCompany.id ? { 
+            ...c, 
+            name: data.name,
+            industry: data.industry || '',
+            address: data.address || '',
+            // Keep other properties that might not be in the form
+            contactPerson: data.contactPerson,
+            email: data.email,
+            phone: data.phone
+          } : c
         ));
         toast.success('Company updated successfully');
         setEditCompany(null);

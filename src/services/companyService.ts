@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -92,11 +91,14 @@ export const companyService = {
       };
       
       const { error } = await supabase
-        .from('organizations')
+        .from('organizations')  // Make sure we're using the correct table name
         .update(dbData)
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
       
       toast.success('Company updated successfully');
       return true;
