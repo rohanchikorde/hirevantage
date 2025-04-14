@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -80,6 +81,7 @@ export const companyService = {
   async updateCompany(id: string, companyData: Partial<Company>): Promise<boolean> {
     try {
       console.log('Updating company with data:', companyData);
+      console.log('Company ID:', id);
       
       // Convert from our interface to database column names
       // Only include fields that exist in the database
@@ -90,16 +92,20 @@ export const companyService = {
         // Note: contactPerson, email, and phone are not included as they don't exist in the database
       };
       
-      const { error } = await supabase
-        .from('organizations')  // Make sure we're using the correct table name
+      console.log('Sending to Supabase:', dbData);
+      
+      const { error, data } = await supabase
+        .from('organizations')
         .update(dbData)
-        .eq('id', id);
+        .eq('id', id)
+        .select();
 
       if (error) {
         console.error('Supabase update error:', error);
         throw error;
       }
       
+      console.log('Supabase update response:', data);
       toast.success('Company updated successfully');
       return true;
     } catch (error: any) {
@@ -117,13 +123,18 @@ export const companyService = {
       // This part would be expanded in a real implementation to cascade delete or handle dependencies
       
       // Delete the company
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('organizations')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase delete error:', error);
+        throw error;
+      }
       
+      console.log('Supabase delete response:', data);
       toast.success('Company deleted successfully');
       return true;
     } catch (error: any) {

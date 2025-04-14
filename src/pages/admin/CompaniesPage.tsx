@@ -210,6 +210,7 @@ const CompaniesPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       console.log('Submitting company update:', data);
+      
       const success = await companyService.updateCompany(editCompany.id, data);
       
       if (success) {
@@ -226,6 +227,10 @@ const CompaniesPage: React.FC = () => {
             phone: data.phone
           } : c
         ));
+        
+        // Refresh the companies list to ensure we have the latest data from the server
+        fetchCompanies();
+        
         toast.success('Company updated successfully');
         setEditCompany(null);
       }
