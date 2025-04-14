@@ -80,6 +80,8 @@ export const companyService = {
   
   async updateCompany(id: string, companyData: Partial<Company>): Promise<boolean> {
     try {
+      console.log('Updating company with data:', companyData);
+      
       // Convert from our interface to database column names
       // Only include fields that exist in the database
       const dbData = {
@@ -99,6 +101,7 @@ export const companyService = {
       toast.success('Company updated successfully');
       return true;
     } catch (error: any) {
+      console.error('Error updating company:', error);
       toast.error(`Failed to update company: ${error.message}`);
       return false;
     }
@@ -106,6 +109,11 @@ export const companyService = {
   
   async deleteCompany(id: string): Promise<boolean> {
     try {
+      console.log('Deleting company with ID:', id);
+      
+      // First, check if there are any dependencies (representatives, requirements)
+      // This part would be expanded in a real implementation to cascade delete or handle dependencies
+      
       // Delete the company
       const { error } = await supabase
         .from('organizations')
@@ -117,6 +125,7 @@ export const companyService = {
       toast.success('Company deleted successfully');
       return true;
     } catch (error: any) {
+      console.error('Error deleting company:', error);
       toast.error(`Failed to delete company: ${error.message}`);
       return false;
     }

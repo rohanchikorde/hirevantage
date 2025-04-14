@@ -52,6 +52,20 @@ import { ChevronDown, ChevronRight, Plus, Search, ArrowUpDown, Users, FileText, 
 import { toast } from 'sonner';
 import { companyService, Company } from '@/services/companyService';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+
+// Form validation schema
+const companyFormSchema = z.object({
+  name: z.string().min(1, { message: "Company name is required" }),
+  industry: z.string().optional(),
+  address: z.string().optional(),
+  contactPerson: z.string().optional(),
+  email: z.string().email({ message: "Invalid email address" }).optional().or(z.literal('')),
+  phone: z.string().optional(),
+});
+
+type CompanyFormValues = z.infer<typeof companyFormSchema>;
 
 const CompaniesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -63,8 +77,11 @@ const CompaniesPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [deleteCompanyId, setDeleteCompanyId] = useState<string | null>(null);
   const [editCompany, setEditCompany] = useState<Company | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const form = useForm({
+  const form = useForm<CompanyFormValues>({
+    resolver: zodResolver(companyFormSchema),
     defaultValues: {
       name: '',
       industry: '',
@@ -154,11 +171,13 @@ const CompaniesPage: React.FC = () => {
         setEditCompany(company);
         form.reset({
           name: company.name,
-          industry: company.industry,
-          address: company.address,
-          contactPerson: company.contactPerson || '',
-          email: company.email || '',
-          phone: company.phone || '',
+          industry: company.industry || '',
+          address: company.address || '',
+          // Note: These fields don't exist in the database but are kept in the form
+          // for potential future implementation
+          contactPerson: '',
+          email: '',
+          phone: '',
         });
         break;
       case 'delete':
@@ -170,23 +189,41 @@ const CompaniesPage: React.FC = () => {
   const handleDeleteConfirm = async () => {
     if (!deleteCompanyId) return;
     
-    const success = await companyService.deleteCompany(deleteCompanyId);
-    if (success) {
-      setCompanies(prev => prev.filter(c => c.id !== deleteCompanyId));
+    setIsDeleting(true);
+    try {
+      const success = await companyService.deleteCompany(deleteCompanyId);
+      if (success) {
+        setCompanies(prev => prev.filter(c => c.id !== deleteCompanyId));
+        toast.success('Company deleted successfully');
+      }
+    } catch (error) {
+      console.error('Error deleting company:', error);
+      toast.error('Failed to delete company');
+    } finally {
+      setIsDeleting(false);
+      setDeleteCompanyId(null);
     }
-    setDeleteCompanyId(null);
   };
   
-  const handleUpdateCompany = async (data: any) => {
+  const handleUpdateCompany = async (data: CompanyFormValues) => {
     if (!editCompany) return;
     
-    const success = await companyService.updateCompany(editCompany.id, data);
-    if (success) {
-      // Update the local state with the edited company
-      setCompanies(prev => prev.map(c => 
-        c.id === editCompany.id ? { ...c, ...data } : c
-      ));
-      setEditCompany(null);
+    setIsSubmitting(true);
+    try {
+      const success = await companyService.updateCompany(editCompany.id, data);
+      if (success) {
+        // Update the local state with the edited company
+        setCompanies(prev => prev.map(c => 
+          c.id === editCompany.id ? { ...c, ...data } : c
+        ));
+        toast.success('Company updated successfully');
+        setEditCompany(null);
+      }
+    } catch (error) {
+      console.error('Error updating company:', error);
+      toast.error('Failed to update company');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -400,12 +437,20 @@ const CompaniesPage: React.FC = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDeleteConfirm}
               className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={isDeleting}
             >
-              Delete
+              {isDeleting ? (
+                <>
+                  <span className="mr-2">Deleting...</span>
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                </>
+              ) : (
+                'Delete'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -427,7 +472,7 @@ const CompaniesPage: React.FC = () => {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company Name</FormLabel>
+                    <FormLabel>Company Name *</FormLabel>
                     <FormControl>
                       <Input placeholder="Company name" {...field} />
                     </FormControl>
@@ -468,9 +513,10 @@ const CompaniesPage: React.FC = () => {
                   <FormItem>
                     <FormLabel>Contact Person</FormLabel>
                     <FormControl>
-                      <Input placeholder="Contact Person" {...field} />
+                      <Input placeholder="Contact Person" {...field} disabled />
                     </FormControl>
                     <FormMessage />
+                    <p className="text-xs text-muted-foreground">This field is not stored in the database yet.</p>
                   </FormItem>
                 )}
               />
@@ -481,9 +527,10 @@ const CompaniesPage: React.FC = () => {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="Email" type="email" {...field} />
+                      <Input placeholder="Email" type="email" {...field} disabled />
                     </FormControl>
                     <FormMessage />
+                    <p className="text-xs text-muted-foreground">This field is not stored in the database yet.</p>
                   </FormItem>
                 )}
               />
@@ -494,17 +541,27 @@ const CompaniesPage: React.FC = () => {
                   <FormItem>
                     <FormLabel>Phone</FormLabel>
                     <FormControl>
-                      <Input placeholder="Phone" {...field} />
+                      <Input placeholder="Phone" {...field} disabled />
                     </FormControl>
                     <FormMessage />
+                    <p className="text-xs text-muted-foreground">This field is not stored in the database yet.</p>
                   </FormItem>
                 )}
               />
               <DialogFooter>
                 <DialogClose asChild>
-                  <Button type="button" variant="outline">Cancel</Button>
+                  <Button type="button" variant="outline" disabled={isSubmitting}>Cancel</Button>
                 </DialogClose>
-                <Button type="submit">Save changes</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <span className="mr-2">Saving...</span>
+                      <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </>
+                  ) : (
+                    'Save changes'
+                  )}
+                </Button>
               </DialogFooter>
             </form>
           </Form>
