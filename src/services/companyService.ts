@@ -36,6 +36,9 @@ export const companyService = {
         name: org.name,
         industry: org.industry || '',
         address: org.address || '',
+        contactPerson: org.contact_person || '',
+        email: org.email || '',
+        phone: org.phone || '',
         createdAt: org.created_at,
         // Adding placeholder for interview count until we implement that query
         interviewsCount: 0
@@ -61,12 +64,96 @@ export const companyService = {
         name: data.name,
         industry: data.industry || '',
         address: data.address || '',
+        contactPerson: data.contact_person || '',
+        email: data.email || '',
+        phone: data.phone || '',
         createdAt: data.created_at,
         interviewsCount: 0 // Placeholder
       };
     } catch (error: any) {
       toast.error(`Failed to fetch company: ${error.message}`);
       return null;
+    }
+  },
+  
+  async updateCompany(id: string, companyData: Partial<Company>): Promise<boolean> {
+    try {
+      // Convert from our interface to database column names
+      const dbData = {
+        name: companyData.name,
+        industry: companyData.industry,
+        address: companyData.address,
+        contact_person: companyData.contactPerson,
+        email: companyData.email,
+        phone: companyData.phone
+      };
+      
+      const { error } = await supabase
+        .from('organizations')
+        .update(dbData)
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      toast.success('Company updated successfully');
+      return true;
+    } catch (error: any) {
+      toast.error(`Failed to update company: ${error.message}`);
+      return false;
+    }
+  },
+  
+  async deleteCompany(id: string): Promise<boolean> {
+    try {
+      // Delete the company
+      const { error } = await supabase
+        .from('organizations')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      toast.success('Company deleted successfully');
+      return true;
+    } catch (error: any) {
+      toast.error(`Failed to delete company: ${error.message}`);
+      return false;
+    }
+  },
+  
+  async getCompanyRepresentatives(companyId: string): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select(`
+          id,
+          profiles (id, full_name, email)
+        `)
+        .eq('organization_id', companyId);
+
+      if (error) throw error;
+      
+      return data || [];
+    } catch (error: any) {
+      toast.error(`Failed to fetch company representatives: ${error.message}`);
+      return [];
+    }
+  },
+  
+  async getCompanyRequirements(companyId: string): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('requirements')
+        .select('*')
+        .eq('company_id', companyId)
+        .eq('status', 'Pending');
+
+      if (error) throw error;
+      
+      return data || [];
+    } catch (error: any) {
+      toast.error(`Failed to fetch company requirements: ${error.message}`);
+      return [];
     }
   }
 };

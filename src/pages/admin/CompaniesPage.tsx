@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Table, 
   TableHeader, 
@@ -18,20 +18,62 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Checkbox } from '@/components/ui/checkbox';
+import { 
+  Form, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormControl, 
+  FormMessage 
+} from "@/components/ui/form";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ChevronDown, ChevronRight, Plus, Search, ArrowUpDown } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Search, ArrowUpDown, Users, FileText, Building, Edit, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { companyService, Company } from '@/services/companyService';
+import { useForm } from 'react-hook-form';
 
 const CompaniesPage: React.FC = () => {
+  const navigate = useNavigate();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [sortField, setSortField] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [deleteCompanyId, setDeleteCompanyId] = useState<string | null>(null);
+  const [editCompany, setEditCompany] = useState<Company | null>(null);
+  
+  const form = useForm({
+    defaultValues: {
+      name: '',
+      industry: '',
+      address: '',
+      contactPerson: '',
+      email: '',
+      phone: '',
+    }
+  });
   
   useEffect(() => {
     fetchCompanies();
@@ -92,18 +134,59 @@ const CompaniesPage: React.FC = () => {
   
   const handleCompanyAction = (companyId: string, action: string) => {
     const company = companies.find(c => c.id === companyId);
-    if (company) {
-      switch (action) {
-        case 'view':
-          // No toast needed as this navigates
-          break;
-        case 'edit':
-          toast.info(`Editing ${company.name}`);
-          break;
-        case 'delete':
-          toast.error(`Company ${company.name} would be deleted`);
-          break;
-      }
+    if (!company) return;
+    
+    switch (action) {
+      case 'view':
+        navigate(`/dashboard/admin/companies/${companyId}`);
+        break;
+      case 'representatives':
+        navigate(`/dashboard/admin/representatives?company=${companyId}`, {
+          state: { companyName: company.name }
+        });
+        break;
+      case 'requirements':
+        navigate(`/dashboard/admin/requirements?company=${companyId}`, {
+          state: { companyName: company.name }
+        });
+        break;
+      case 'edit':
+        setEditCompany(company);
+        form.reset({
+          name: company.name,
+          industry: company.industry,
+          address: company.address,
+          contactPerson: company.contactPerson || '',
+          email: company.email || '',
+          phone: company.phone || '',
+        });
+        break;
+      case 'delete':
+        setDeleteCompanyId(companyId);
+        break;
+    }
+  };
+  
+  const handleDeleteConfirm = async () => {
+    if (!deleteCompanyId) return;
+    
+    const success = await companyService.deleteCompany(deleteCompanyId);
+    if (success) {
+      setCompanies(prev => prev.filter(c => c.id !== deleteCompanyId));
+    }
+    setDeleteCompanyId(null);
+  };
+  
+  const handleUpdateCompany = async (data: any) => {
+    if (!editCompany) return;
+    
+    const success = await companyService.updateCompany(editCompany.id, data);
+    if (success) {
+      // Update the local state with the edited company
+      setCompanies(prev => prev.map(c => 
+        c.id === editCompany.id ? { ...c, ...data } : c
+      ));
+      setEditCompany(null);
     }
   };
 
@@ -238,18 +321,27 @@ const CompaniesPage: React.FC = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem asChild>
-                                <Link to={`/dashboard/admin/companies/${company.id}`}>
-                                  <ChevronRight className="mr-2 h-4 w-4" /> View Dashboard
-                                </Link>
+                              <DropdownMenuItem onClick={() => handleCompanyAction(company.id, 'view')}>
+                                <Building className="mr-2 h-4 w-4" />
+                                View Details Page
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleCompanyAction(company.id, 'representatives')}>
+                                <Users className="mr-2 h-4 w-4" />
+                                View Representatives
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleCompanyAction(company.id, 'requirements')}>
+                                <FileText className="mr-2 h-4 w-4" />
+                                View Requirements
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleCompanyAction(company.id, 'edit')}>
-                                Edit Details
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit Company
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 className="text-red-600 focus:text-red-600"
                                 onClick={() => handleCompanyAction(company.id, 'delete')}
                               >
+                                <Trash2 className="mr-2 h-4 w-4" />
                                 Delete Company
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -297,6 +389,127 @@ const CompaniesPage: React.FC = () => {
           )}
         </CardContent>
       </Card>
+      
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteCompanyId} onOpenChange={(open) => !open && setDeleteCompanyId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the selected company and all related data including representatives and requirements.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Edit Company Dialog */}
+      <Dialog open={!!editCompany} onOpenChange={(open) => !open && setEditCompany(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Company</DialogTitle>
+            <DialogDescription>
+              Make changes to the company information below.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleUpdateCompany)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Company name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="industry"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Industry</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Industry" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Address" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="contactPerson"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contact Person</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Contact Person" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Email" type="email" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Phone" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button type="button" variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button type="submit">Save changes</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
